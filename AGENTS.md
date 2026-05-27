@@ -24,6 +24,44 @@ Walk through original text step by step:
 - Known Chinese entropy bounds: H₀≈9.62 bits/char (Sun & Sun), bigram→7.15, neural LM→3.96 bpc (Takahashi & Tanaka-Ishii 2018)
 - Our experiment attempts to construct a conditional entropy chain H(N) for Chinese
 
+## How to Run
+
+```bash
+conda activate qwenenv
+
+# Quick run (KFC only, 50 chars per segment):
+python src/run_experiment.py --top-k 1000 --n-max 50 --categories kfc
+
+# Full run (all categories, 200 segments each):
+python src/run_experiment.py --top-k 1000 --n-max 50 --max-segs 200
+```
+
+## Results Data (JSONL Schema)
+
+Each run produces `results/{category}.jsonl`. One JSON object per prediction step:
+
+```json
+{
+  "step": 0,
+  "pos": 5,
+  "prefix_len": 5,
+  "matched_rank": 1,
+  "matched_token": "的",
+  "matched_logprob": -0.74,
+  "matched_prob": 0.477,
+  "matched_token_len": 1,
+  "entropy": 4.07,
+  "top1_prob": 0.477,
+  "top1_token": "的",
+  "source": "kfc_original.txt",
+  "seg_id": 0
+}
+```
+
+**Important**: `entropy` is the full-vocab distribution entropy. To compute per-N conditional entropy: group by `prefix_len`, average the entropies.
+
+**Entropy chain construction**: `H(N) = avg(entropy where prefix_len = N)`. Current data covers N=5..50 at char resolution (since `prefix_len` increments by matched_token_len each step, not all N values equally sampled — need to bucket/interpolate).
+
 ## Methodology
 
 ### Model
@@ -139,9 +177,21 @@ Script: `src/clean_data.py`
 
 1. **KFC-specific test**: predict at "v我50，吃___" position to see model's top predictions
 2. **Full H(N) chain**: run experiment at multiple N values (10, 20, 30, 50, 100, 200) to plot the conditional entropy curve
-3. **Analysis scripts**: compute and plot H(N) vs N from the collected data
+3. **Analysis scripts to write**: compute and plot H(N) vs N from the collected data, bucket by prefix_len, compare categories
 4. **Compare with literature**: plot against Sun & Sun (H₀=9.62) and Takahashi & Tanaka-Ishii (3.96 bpc)
 5. **Compare categories**: which text type has the steepest entropy drop?
+
+## Analysis Tasks for Next Session
+
+The AI in the next session should:
+
+1. **Read JSONL results** from `results/*.jsonl` (gitignored but present locally; if missing, re-run experiment first)
+2. **Plot H(N) curve**: group by `prefix_len`, compute mean entropy per N, plot H(N) vs N for each category
+3. **Overlay literature baselines**: H₀=9.62 (Sun & Sun horizontal line), H∞≈3.96 (Takahashi horizontal line)
+4. **Rank distribution plots**: histogram of matched_rank, rank-1 percentage by prefix_len
+5. **Match rate by N**: does longer context → higher match rate?
+6. **Category comparison**: overlay all categories on same plot
+7. **KFC specific**: predict at "v我50，吃__" — report top-10 tokens
 
 ## Environment
 
