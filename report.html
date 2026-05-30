@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>用 LLM 模拟 Shannon 汉语预测实验</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Noto Serif SC', 'Source Han Serif CN', 'Songti SC', serif;
+  background: #faf9f6; color: #2c2c2c; line-height: 1.9; font-size: 16px;
+}
+.container { max-width: 780px; margin: 0 auto; padding: 40px 20px 60px; }
+h1 { text-align: center; font-size: 1.7em; font-weight: 700; margin-bottom: 6px; letter-spacing: 0.05em; }
+.meta { text-align: center; color: #888; font-size: 0.85em; margin-bottom: 40px; border-bottom: 1px solid #e0ddd8; padding-bottom: 20px; }
+h2 { font-size: 1.2em; margin: 36px 0 14px; color: #3a3a3a; border-left: 3px solid #b8860b; padding-left: 10px; }
+h3 { font-size: 1.05em; margin: 24px 0 10px; color: #4a4a4a; }
+p { margin: 10px 0; text-indent: 2em; }
+.no-indent { text-indent: 0; }
+table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.88em; }
+th { background: #f0ede6; padding: 8px 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #d4c9a8; }
+td { padding: 7px 10px; border-bottom: 1px solid #e8e4dc; }
+.best { color: #2e7d32; font-weight: 600; }
+.worst { color: #c62828; font-weight: 600; }
+.highlight { color: #b8860b; font-weight: 600; }
+blockquote { border-left: 3px solid #d4c9a8; margin: 16px 0; padding: 8px 16px; color: #555; background: #faf8f2; font-style: italic; }
+.insight { background: #faf8f2; border-left: 3px solid #b8860b; padding: 10px 14px; margin: 14px 0; font-size: 0.92em; }
+ul, ol { margin: 10px 0 10px 2em; }
+li { margin: 4px 0; }
+.chart-wrap { margin: 24px 0; text-align: center; }
+.chart-wrap canvas { max-width: 100%; }
+.caption { text-align: center; color: #999; font-size: 0.8em; margin-top: 4px; }
+code { background: #f0ede6; padding: 1px 5px; border-radius: 3px; font-family: monospace; font-size: 0.88em; }
+footer { text-align: center; color: #aaa; font-size: 0.8em; margin-top: 50px; border-top: 1px solid #e0ddd8; padding-top: 16px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>用 LLM 模拟 Shannon 汉语预测实验</h1>
+<div class="meta">
+  复旦大学 · 语言科学导论 · 课程项目报告<br>
+  数学科学学院 · 2026年5月
+</div>
+
+<h2>为什么做这个实验</h2>
+
+<p>这门课上，陈忠敏老师讲到语言的"结构"时引用了《道德经》的一句话：<strong>"一生二，二生三，三生万物。"</strong>语言的层级结构正是如此：特征（<20个）→ 音段（<100个）→ 音节（~1600个）→ 语素（~10000个）→ 词（~1000000个）→ 句子（无穷）。从有限的底层单位出发，通过组合与递归，产生无穷的表达。乔姆斯基把这称为"离散无穷性"（discrete infinity）——语言是一个由有限规则生成可数无穷集合的代数结构。</p>
+
+<p>我是数学系的，对这个"结构"本身很好奇。池老师在方言测量学那节课上用 Jaccard 距离、MDS、Tobler 定律来量化方言的相似性，让我意识到：语言学的很多问题可以转化为数学问题。而信息论提供了一个天然的框架——熵度量的是不确定性，而语言的可预测性正是其结构的体现。</p>
+
+<p>我想知道的是：<strong>给定前 N 个汉字时，下一个字的不确定性（熵）如何随 N 变化？</strong>这条 H(N) 曲线，就是 Shannon (1951) 为英语构建的"条件熵链"。Shannon 让受试者逐字母预测英语文本，得到一条从 H₀=4.03 下降到 H∞≈1.0 的曲线，揭示了英语的冗余度约为75%。但这个实验在汉语中从未被做过——英语只有26个字母，平均猜4-5次就能命中；汉语常用字约6700个，零阶平均需要猜约12次，人类受试者做不到。</p>
+
+<p>所以我想到：用大语言模型（LLM）替代人类受试者。LLM 可以瞬间访问整个词表的概率分布，不受认知负荷限制。虽然 LLM 不是"人类"，但它的概率输出反映了它在训练数据中获得的语言统计结构——这正是我们想要测量的东西。</p>
+
+<h2>已有研究</h2>
+
+<p>在动手之前，我确认了汉语熵的研究现状：</p>
+
+<table>
+  <tr><th>研究</th><th>方法</th><th>结果</th></tr>
+  <tr><td>孙帆、孙茂松</td><td>《人民日报》语料库字频统计</td><td>H₀ = 9.62 bits/char</td></tr>
+  <tr><td>同上</td><td>条件概率</td><td>H₁ ≈ 7.15, H₂ ≈ 6.65 bits/char</td></tr>
+  <tr><td>Chang & Lin (1994)</td><td>同义词词林聚类</td><td>~4.6 bits/char</td></tr>
+  <tr><td>Takahashi & Tanaka-Ishii (2018)</td><td>AWD-LSTM-MoS 神经网络</td><td>4.43 bpc → 外推 3.96 bpc</td></tr>
+</table>
+
+<p>Takahashi & Tanaka-Ishii (2018) 的结果（3.96 bpc）是目前最紧的汉语熵率上界。但他们的方法是神经网络交叉熵——在测试集上平均 log P，输出一个数字。这和 Shannon 的预测实验是<strong>不同的方法论</strong>：神经网络交叉熵是统计量，黑箱，一个数字；而 Shannon 预测实验是逐位置猜测，记录猜测次数分布，可以构建完整的条件熵链。</p>
+
+<p>Takahashi 告诉我们"汉语的熵大约是 3.96 bpc"，但没有告诉我们"给定前5个字时，下一个字有多可预测"——而这正是 Shannon 实验能回答的问题。</p>
+
+<h2>实验方法</h2>
+
+<p>实验的核心流程如下。给定一段文本，从第5个字开始，将已知文本作为前缀输入模型，模型输出整个词表（151,643个token）的概率分布。然后我们需要判断：模型的预测是否"正确"？</p>
+
+<p>判断方式是<strong>字符串匹配</strong>。假设原文从待预测位置开始是 "y₁y₂y₃y₄..."，模型按概率从高到低排列出候选 token：t₁, t₂, t₃, ...。我们依次检查每个 tₖ：</p>
+
+<ul>
+  <li>tₖ = "y₁"？→ 匹配，记录 rank=k，前进1个字</li>
+  <li>tₖ = "y₁y₂"？→ 匹配，记录 rank=k，前进2个字</li>
+  <li>tₖ = "y₁y₂y₃"？→ 匹配，记录 rank=k，前进3个字</li>
+  <li>如果 top-1000 内没有任何 token 匹配原文的前缀 → 记录 miss，前进1个字</li>
+</ul>
+
+<p>换句话说，我们检查的是：模型预测的 token 中，有没有一个是原文剩余部分的<strong>前缀</strong>？如果有，取排名最高的那个。这自然处理了多字 token 的情况——如果模型预测 "星期四" 排第一，而原文接下来也是 "星期四"，就一次跳过3个字。</p>
+
+<p>每一步记录：匹配的排名、概率、熵值（整个分布的熵），然后前进到下一个待预测位置，重复上述过程。</p>
+
+<p>Shannon 预测的是字母，我预测的是 token（模型的原生子词单位）。这看起来粒度不同，但实际上更合理：模型的 tokenizer 天然处理多字词（如"我们"、"星期四"），不需要额外的字-词映射。代价是结果不能直接和 Shannon 的字母级结果比较绝对值，但条件熵链的<strong>趋势</strong>和<strong>跨文本对比</strong>仍然有意义。</p>
+
+<p>模型用的是 <strong>Qwen3-0.6B Base</strong>（0.6B参数，非 Instruct 版本，避免 RLHF 干扰概率分布）。这是一个预训练好的语言模型，实验过程中<strong>不更新参数</strong>——模型不是在"学习"这些文本，而是用它已有的语言知识做 in-context 预测。模型在训练阶段从海量语料中获得了汉语的统计结构，我们的实验是测量这种结构的"强度"。</p>
+
+<p>数据集涵盖10个类别，从古典小说到网络梗：百科（wiki 120段）、新闻（94段）、科普（《人类简史》200段）、白话小说（《俗世奇人》200段）、古典小说（《三国演义》200段）、武侠小说（《天龙八部》200段）、现代文学（《白鹿原》200段）、方言文学（《四世同堂》200段）、网络梗（"疯狂星期四"42段）、网络段子（反转/废话/凡尔赛 63段）。总共约 50,958 步预测，实验在 RTX 5060 8GB GPU 上运行。</p>
+
+<h2>实验结果</h2>
+
+<div class="chart-wrap">
+  <img src="fig_entropy.png" style="max-width:100%">
+  <div class="caption">Figure 1: Average prediction entropy by text type (bits/char)</div>
+</div>
+
+<table>
+  <tr><th>类别</th><th>步数</th><th>匹配率</th><th>Rank-1</th><th>平均Rank</th><th>平均熵</th></tr>
+  <tr><td>wiki</td><td>4228</td><td>94.0%</td><td class="best">27.6%</td><td class="best">77.1</td><td class="best">3.53</td></tr>
+  <tr><td>news</td><td>2693</td><td>92.0%</td><td>24.6%</td><td>81.4</td><td>3.80</td></tr>
+  <tr><td>internet_twists</td><td>1323</td><td>92.3%</td><td>25.6%</td><td>71.7</td><td>3.94</td></tr>
+  <tr><td>human_jianshi</td><td>6450</td><td>91.6%</td><td>24.7%</td><td>84.0</td><td>3.95</td></tr>
+  <tr><td>kfc</td><td>1497</td><td>91.4%</td><td>27.5%</td><td>76.9</td><td>3.95</td></tr>
+  <tr><td>sanguo</td><td>7818</td><td class="best">95.0%</td><td>25.7%</td><td>81.5</td><td>4.00</td></tr>
+  <tr><td>tianlongbabu</td><td>7425</td><td>92.0%</td><td>24.2%</td><td>89.5</td><td>4.09</td></tr>
+  <tr><td>bailuyuan</td><td>7399</td><td>90.1%</td><td>20.1%</td><td>105.9</td><td>4.12</td></tr>
+  <tr><td>sishitongtang</td><td>6188</td><td>91.0%</td><td class="worst">18.1%</td><td>102.2</td><td class="worst">4.38</td></tr>
+  <tr><td>sushi_qiren</td><td>6885</td><td>90.0%</td><td class="worst">19.6%</td><td class="worst">103.3</td><td class="worst">4.48</td></tr>
+</table>
+
+<p>wiki 百科最可预测（H=3.53），方言文学最难预测（H=4.48），差异接近1个 bit。所有类别的 top-1000 匹配率都在 90% 以上，但 Rank-1 差异很大（18%~28%），反映了不同语体的"套路性"程度不同。</p>
+
+<p><strong>古典小说 vs 现代文学</strong>：三国演义（H=4.00）比白鹿原（H=4.12）更可预测，尽管三国演义是文言成分更多的古典文本。原因在于章回体有大量固定套话——"话说"、"且说"、"后人有诗赞曰"——而陈忠实的现代小说语言更灵活、更难预测。</p>
+
+<p><strong>方言文学最难</strong>：四世同堂（H=4.38）和俗世奇人（H=4.48）是熵最高的两类，都带有浓重的方言色彩（老舍的北京话、冯骥才的天津味）。这对模型来说最陌生，因为它在训练数据中见到的方言文本相对较少。</p>
+
+<p><strong>网络梗的悖论</strong>：疯狂星期四（H=3.95）的熵比新闻（H=3.80）还高，但 Rank-1 准确率（27.5%）却是最高的之一。这说明 KFC 文案虽然整体不确定性高（因为梗的创意性），但某些固定搭配（如"疯狂星期四"）模型预测得非常准。</p>
+
+<h3>疯狂星期四：反转点预测</h3>
+
+<p>作为专项测试，我在每条 KFC 文案的反转关键词位置进行了定点预测：</p>
+
+<table>
+  <tr><th>前缀</th><th>目标词</th><th>排名</th></tr>
+  <tr><td>...因为疯狂</td><td class="highlight">星期四</td><td class="best">1</td></tr>
+  <tr><td>...肯德基疯狂</td><td class="highlight">星期四</td><td class="best">2</td></tr>
+  <tr><td>...今天是疯狂</td><td class="highlight">星期四</td><td class="best">1</td></tr>
+  <tr><td>...能给我转50吃</td><td class="highlight">肯德基</td><td>252</td></tr>
+  <tr><td>...V我50吃一顿</td><td class="highlight">肯德基</td><td class="worst">NOT FOUND</td></tr>
+  <tr><td>...缺五十块买</td><td class="highlight">肯德基</td><td class="worst">NOT FOUND</td></tr>
+</table>
+
+<p>"疯狂"→"星期四"是语言层面的固定搭配，模型轻松预测（Rank 1-2）。但"吃"→"肯德基"是文化层面的梗——"吃"后面什么都能跟，模型无法仅凭上下文推断出"肯德基"。</p>
+
+<div class="insight">
+模型的预测反映的是<strong>语言模式</strong>（疯狂星期四），而不是<strong>文化梗义</strong>（为什么是星期四、为什么要V50）。生成语言学区分语言能力（competence）和语言使用（performance）：模型在训练中获得了很强的语言能力，但不一定理解语言背后的文化语用。这个实验结果正好说明了这一点。
+</div>
+
+<div class="chart-wrap">
+  <img src="fig_scatter.png" style="max-width:100%">
+  <div class="caption">Figure 2: Match rate vs average entropy</div>
+</div>
+
+<p>从散点图可以看出，匹配率和熵之间大致呈负相关：熵越低，匹配率越高。但也有例外——三国演义的匹配率最高（95%），但熵并不是最低的（4.00），说明它的"套路性"体现在高匹配率上，而不是低不确定性上。</p>
+
+<div class="chart-wrap">
+  <img src="fig_rank1.png" style="max-width:100%">
+  <div class="caption">Figure 3: Rank-1 accuracy by text type</div>
+</div>
+
+<h3>与已有研究的比较</h3>
+
+<p>我们的结果（H=3.53~4.48 bits/char，N=5→50）和 Takahashi & Tanaka-Ishii (2018) 的神经网络上界（3.96 bpc）处于同一数量级。但两者的方法论不同，不能直接比较绝对值：Takahashi 用的是字级预测（对每个字计算概率），我们用的是 token 级预测（对每个 token 计算概率）。token 是子词单位，可以是1个字、2个字或更多，粒度比字粗，所以熵值偏低是合理的。</p>
+
+<p>为了进一步分析条件熵链的行为，我对四部长文本做了扩展实验（N=5→200，每部20段），将 N 值分箱后拟合幂律模型 H(N) = H∞ + a·N^(-b)：</p>
+
+<table>
+  <tr><th>文本</th><th>H∞</th><th>b</th><th>R²</th><th>冗余度</th></tr>
+  <tr><td>三国演义</td><td>2.92</td><td>0.591</td><td>0.95</td><td>69.6%</td></tr>
+  <tr><td>白鹿原</td><td>3.27</td><td>0.608</td><td>0.98</td><td>66.1%</td></tr>
+  <tr><td>人类简史</td><td>2.90</td><td>0.643</td><td>0.82</td><td>69.8%</td></tr>
+  <tr><td>天龙八部</td><td>2.88</td><td>0.736</td><td>0.93</td><td>70.0%</td></tr>
+  <tr><td>Shannon 英语</td><td>1.00</td><td>—</td><td>—</td><td>75.2%</td></tr>
+</table>
+
+<p>四部小说的 H∞ 收敛在 2.88~3.27 bits/char，R² 在 0.82~0.98，拟合质量良好。幂律指数 b 在 0.59~0.74 之间，说明不同文本的衰减速度相近。</p>
+
+<p>Shannon 的英语实验中，H₀ = 4.03 bits/letter，H∞ ≈ 1.0 bits/letter，冗余度 = 1 - 1.0/4.03 ≈ 75%。我们的汉语实验中，H₀ = 9.62 bits/char（孙帆、孙茂松），H∞ ≈ 2.9 bits/char（token 级），冗余度 ≈ 66-70%。两个数值接近，但有重要区别：英语的 H₀ 和 H∞ 都是字级的，而我们的 H₀ 是字级（9.62），H∞ 是 token 级（2.9），粒度不一致。如果用字级 H∞，冗余度可能会更低。因此，"汉语冗余度接近英语"这个结论需要字级实验来验证。</p>
+
+<p>幂律衰减（b ≈ 0.6）意味着：起初每多知道一个字，熵下降很快；但到了 N > 50 之后，下降速度明显放缓，趋近于一个极限值。这体现了<strong>上下文的边际收益递减</strong>——前10个字的上下文比后100个字更有用。</p>
+
+<h2>讨论</h2>
+
+<p>用 LLM 替代人类受试者做语言学实验，是一个新兴的方法。好处是 LLM 可以处理 6700 个常用字的候选空间（人类做不到），可以批量运行，结果可复现。问题是 LLM 的"语言知识"来自训练数据，不是人类的母语直觉，两者可能有系统性差异。</p>
+
+<p>wiki 百科（H=3.53）比文学作品（H=4.12~4.48）更可预测。Shannon 也发现了类似的现象——他用的是百科类文本（"Jefferson the Virginian"），英语的百科文本同样比文学文本更容易预测。这似乎是一个跨语言的规律：<strong>正式、信息密集的文本比文学性文本的冗余度更高</strong>。</p>
+
+<p>H(N) 曲线的幂律衰减（H(N) = 2.92 + 5.78 × N^(-0.591)）给出了一个直觉：起初每多知道一个字，熵下降很快；但到了 N > 50 之后，下降速度明显放缓。这意味着<strong>上下文的边际收益递减</strong>——前10个字的上下文比后100个字更有用。Shannon 的英语曲线也呈现类似的形状。</p>
+
+<p>H∞/H₀ 的比值（汉语 ≈ 0.30，英语 ≈ 0.25）接近，说明两种语言的上下文压缩效率相似。但这个比较有局限：H₀ 用的是字级统计（9.62 bits/char），H∞ 用的是 token 级拟合（2.9 bits/char），粒度不一致。如果能实现字级预测，就能直接比较。</p>
+
+<p>陈忠敏老师讲到的"从连续信号中切分离散单位"——大脑把声波切成音段、音节、词——其实和模型做的事情有相似之处：模型的 tokenizer 把连续的文本切成 token，然后在 token 级别做预测。区别在于，大脑的切分是基于语音信号的物理特征，而模型的切分是基于统计频率。但两者的本质都是：<strong>从连续中提取离散结构</strong>。</p>
+
+<h2>局限与展望</h2>
+
+<p>实验的局限：粒度是 token 不是字，H₀（9.62 bits/char）和 H∞（2.9 bits/char）的粒度不一致，冗余度的比较需要谨慎解读；只用了一个模型（Qwen3-0.6B），如果用更大的模型，结果可能不同；没有覆盖口语、诗歌、法律文书等特殊语体。</p>
+
+<p>后续可以做的：实现字级预测（聚合所有以该字开头的 token 概率），直接和 Shannon 的字母级实验比较；补全 N=0~4 的低阶熵；比较不同大小的模型（0.6B vs 7B vs 72B）；加入更多语体。</p>
+
+<h2>结论</h2>
+
+<p>本项目用 Qwen3-0.6B 作为"虚拟受试者"，对10种不同语体的汉语文本做了 Shannon 式预测实验，共完成 50,958 步预测。百科类文本（wiki, H=3.53）最可预测，方言文学（俗世奇人, H=4.48）最难预测，差异接近1个 bit。古典章回体小说（三国演义, H=4.00）比现代文学（白鹿原, H=4.12）更可预测，因为有大量固定套话。网络梗（疯狂星期四, H=3.95）的固定搭配（"疯狂星期四"）模型预测极准，但梗的创意部分（"V我50"）模型无法预测。</p>
+
+<p>对四部长文本的扩展实验（N=5→200）显示，H(N) 曲线符合幂律衰减，H∞ 收敛在 2.88~3.27 bits/char，R² 在 0.82~0.98。汉语的冗余度约为 66-70%，与 Shannon 英语实验的 75% 接近。但这个比较有粒度不一致的局限（H₀ 是字级，H∞ 是 token 级），需要字级预测来验证。</p>
+
+<h2>参考文献</h2>
+
+<p class="no-indent" style="font-size:0.9em; line-height:1.7;">
+Shannon, C. E. (1951). Prediction and Entropy of Printed English. <em>Bell System Technical Journal</em>, 30(1), 50-64.<br>
+孙帆, 孙茂松. 汉字信息熵的计算与分析.<br>
+Chang, C.-H., & Lin, C.-C. (1994). <em>A Study on the Entropy of Chinese Characters</em>. ACL Anthology.<br>
+Takahashi, S., & Tanaka-Ishii, K. (2018). Evaluating Computational Language Models with Scaling Properties of Natural Language. <em>Entropy</em>, 20(11), 839.
+</p>
+
+<footer>
+  用 LLM 模拟 Shannon 汉语预测实验 · 语言科学导论课程项目 · 2026年5月
+</footer>
+
+</div>
+</body>
+</html>

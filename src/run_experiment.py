@@ -1,21 +1,20 @@
 """
 Shannon-style Chinese Prediction Experiment — Token-Match Design
 
-Walk through text segments (sentences/paragraphs). For each segment:
-  - Feed prefix (growing from warmup to N_max=50 chars)
+Walk through text segments. For each segment:
+  - Feed prefix (growing from warmup to N_max chars)
   - At each step, model predicts ranked tokens
   - Check if any predicted token matches the actual next text (startswith)
   - Record match info, advance by matched token length
 
-Data per record: step, pos, prefix_len, matched_rank/prob/logprob/token/token_len,
-                 entropy, top1_prob, top1_token, source, segment_id
-
-Categories: human_jianshi, sushi_qiren, wiki, news, kfc
-Output: pj/results/{category}.jsonl
+Categories: wiki, news, human_jianshi, sushi_qiren, sanguo, tianlongbabu,
+            bailuyuan, sishitongtang, kfc, internet_twists
+Output: results/{category}.jsonl
 
 Usage:
   conda activate qwenenv
-  python pj/src/run_experiment.py [--max-chars 0] [--top-k 1000] [--n-max 50]
+  python src/run_experiment.py --top-k 1000 --n-max 50 --max-segs 200
+  python src/run_experiment.py --top-k 1000 --n-max 50 --categories kfc
 """
 
 import argparse
@@ -27,9 +26,10 @@ from pathlib import Path
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-MODEL_PATH = "pj/models/Qwen3-0.6B"
-CLEAN_DIR = Path("pj/data/clean")
-OUTPUT_DIR = Path("pj/results")
+BASE = Path(__file__).resolve().parent.parent
+MODEL_PATH = str(BASE / "models" / "Qwen3-0.6B")
+CLEAN_DIR = BASE / "data" / "clean"
+OUTPUT_DIR = BASE / "results"
 
 CATEGORY_FILES = {
     "human_jianshi": ["human_jianshi.txt"],
@@ -46,6 +46,13 @@ CATEGORY_FILES = {
         "news_08_气候大会.txt",
     ],
     "kfc": ["kfc_original.txt"],
+    # New categories from literature-books repo
+    "sanguo": ["sanguo.txt"],           # 三国演义 - classical Chinese historical novel
+    "tianlongbabu": ["tianlongbabu.txt"], # 天龙八部 - 金庸 wuxia novel
+    "bailuyuan": ["bailuyuan.txt"],       # 白鹿原 - modern literary fiction
+    "sishitongtang": ["sishitongtang.txt"], # 四世同堂 - 老舍 Beijing dialect
+    # Internet culture with twists/punchlines
+    "internet_twists": ["internet_twists.txt"],
 }
 
 WARMUP = 5
