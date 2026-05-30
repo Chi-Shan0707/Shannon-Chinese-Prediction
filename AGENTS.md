@@ -45,7 +45,7 @@ data/clean/              Cleaned UTF-8 segments (input to experiment)
 results/                 JSONL output (gitignored, local only)
 ```
 
-## Data (10 Categories)
+## Data (11 Categories)
 
 | Category | Source | Segments |
 |----------|--------|----------|
@@ -57,6 +57,7 @@ results/                 JSONL output (gitignored, local only)
 | tianlongbabu | 《天龙八部》 | 200 |
 | bailuyuan | 《白鹿原》 | 200 |
 | sishitongtang | 《四世同堂》 | 200 |
+| wanli | 《万历十五年》 | 200 |
 | kfc | 疯狂星期四 memes | 42 |
 | internet_twists | 反转段子/废话文学 | 63 |
 
@@ -70,6 +71,7 @@ results/                 JSONL output (gitignored, local only)
 | human_jianshi | 6450 | 91.6% | 24.7% | 3.95 |
 | kfc | 1497 | 91.4% | 27.5% | 3.95 |
 | sanguo | 7818 | 95.0% | 25.7% | 4.00 |
+| wanli | 7590 | 91.3% | 23.4% | 4.07 |
 | tianlongbabu | 7425 | 92.0% | 24.2% | 4.09 |
 | bailuyuan | 7399 | 90.1% | 20.1% | 4.12 |
 | sishitongtang | 6188 | 91.0% | 18.1% | 4.38 |

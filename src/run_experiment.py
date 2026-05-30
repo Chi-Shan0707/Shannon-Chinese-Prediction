@@ -53,6 +53,7 @@ CATEGORY_FILES = {
     "sishitongtang": ["sishitongtang.txt"], # 四世同堂 - 老舍 Beijing dialect
     # Internet culture with twists/punchlines
     "internet_twists": ["internet_twists.txt"],
+    "wanli": ["wanli.txt"],
 }
 
 WARMUP = 5

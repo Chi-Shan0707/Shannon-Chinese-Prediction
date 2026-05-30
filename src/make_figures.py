@@ -22,17 +22,17 @@ OKABE_ITO = ['#E69F00', '#56B4E9', '#009E73', '#F0E442',
              '#0072B2', '#D55E00', '#CC79A7', '#000000']
 
 cats = ['wiki', 'news', 'twists', 'YuJianShi', 'kfc',
-        'SanGuo', 'TianLong', 'BaiLuYuan', 'SiShiT', 'SuShiQi']
-entropies = [3.53, 3.80, 3.94, 3.95, 3.95, 4.00, 4.09, 4.12, 4.38, 4.48]
-match_rates = [94.0, 92.0, 92.3, 91.6, 91.4, 95.0, 92.0, 90.1, 91.0, 90.0]
-rank1 = [27.6, 24.6, 25.6, 24.7, 27.5, 25.7, 24.2, 20.1, 18.1, 19.6]
+        'SanGuo', 'TianLong', 'BaiLuYuan', 'SiShiT', 'SuShiQi', 'WanLi']
+entropies = [3.53, 3.80, 3.94, 3.95, 3.95, 4.00, 4.09, 4.12, 4.38, 4.48, 4.07]
+match_rates = [94.0, 92.0, 92.3, 91.6, 91.4, 95.0, 92.0, 90.1, 91.0, 90.0, 91.3]
+rank1 = [27.6, 24.6, 25.6, 24.7, 27.5, 25.7, 24.2, 20.1, 18.1, 19.6, 23.4]
 
 groups = ['Ency', 'News', 'Meme', 'PopSci', 'Meme',
-          'Class', 'Wuxia', 'Lit', 'Dial', 'Dial']
+          'Class', 'Wuxia', 'Lit', 'Dial', 'Dial', 'Hist']
 group_colors = {
     'Ency': OKABE_ITO[4], 'News': OKABE_ITO[2], 'Meme': OKABE_ITO[0],
     'PopSci': OKABE_ITO[4], 'Class': OKABE_ITO[1], 'Wuxia': OKABE_ITO[1],
-    'Lit': OKABE_ITO[6], 'Dial': OKABE_ITO[5],
+    'Lit': OKABE_ITO[6], 'Dial': OKABE_ITO[5], 'Hist': OKABE_ITO[3],
 }
 colors = [group_colors[g] for g in groups]
 
@@ -58,6 +58,7 @@ legend_elements = [
     Patch(facecolor=OKABE_ITO[2], label='News'),
     Patch(facecolor=OKABE_ITO[0], label='Internet memes'),
     Patch(facecolor=OKABE_ITO[1], label='Classical/Wuxia'),
+    Patch(facecolor=OKABE_ITO[3], label='Historical essay'),
     Patch(facecolor=OKABE_ITO[6], label='Modern literature'),
     Patch(facecolor=OKABE_ITO[5], label='Dialect literature'),
 ]
