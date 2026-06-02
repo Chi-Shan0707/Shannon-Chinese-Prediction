@@ -111,47 +111,4 @@ fig3.savefig(BASE + 'fig_rank1.png')
 fig3.savefig(BASE + 'fig_rank1.pdf')
 print('Saved fig_rank1')
 
-# ===== Fig 4: Rank distribution vs Shannon 1/k law =====
-import json
-from collections import Counter
-from pathlib import Path
-
-all_ranks = []
-for fpath in sorted(Path(BASE + 'results').glob('*.jsonl')):
-    if fpath.name in ('wanli.jsonl', 'twist_prediction.jsonl'):
-        continue
-    with open(fpath) as f:
-        for line in f:
-            r = json.loads(line)
-            if r['matched_rank'] > 0:
-                all_ranks.append(r['matched_rank'])
-
-rank_counts = Counter(all_ranks)
-total = len(all_ranks)
-
-max_k = 50
-ks = np.arange(1, max_k + 1)
-empirical = np.array([rank_counts.get(k, 0) / total for k in ks])
-harmonic = sum(1.0 / i for i in range(1, 1001))
-shannon_1k = np.array([1.0 / (k * harmonic) for k in ks])
-
-fig4, ax4 = plt.subplots(figsize=(5.5, 3.5))
-ax4.bar(ks - 0.2, empirical, width=0.4, color='#56B4E9', alpha=0.8,
-        label='Empirical', edgecolor='white', linewidth=0.3)
-ax4.plot(ks, shannon_1k, 'o-', color='#D55E00', markersize=3, linewidth=1.2,
-         label='Shannon 1/k law', zorder=5)
-ax4.set_xlabel('Guess rank k')
-ax4.set_ylabel('P(rank = k)')
-ax4.set_xlim(0.5, 50.5)
-ax4.set_yscale('log')
-ax4.set_ylim(0.002, 0.4)
-ax4.legend(frameon=False, loc='upper right')
-ax4.annotate(f'P(1) = {empirical[0]:.3f}\n(1/k predicts {shannon_1k[0]:.3f})',
-             xy=(1, empirical[0]), xytext=(8, 0.25),
-             fontsize=7, color='#444',
-             arrowprops=dict(arrowstyle='->', color='#999', lw=0.8))
-fig4.tight_layout()
-fig4.savefig(BASE + 'fig_rank_dist.png')
-print('Saved fig_rank_dist')
-
 print('Done.')
