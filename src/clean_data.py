@@ -13,7 +13,7 @@ Rules:
 import re
 import os
 
-RAW_DIR = os.path.join(os.path.dirname(__file__), '..', 'data')
+RAW_DIR = os.path.join(os.path.dirname(__file__), '..', 'data', 'raw')
 CLEAN_DIR = os.path.join(RAW_DIR, 'clean')
 
 CJK_RANGE = set()
@@ -122,9 +122,9 @@ def main():
     os.makedirs(CLEAN_DIR, exist_ok=True)
 
     files = [
-        ('人类简史.txt', 'gb18030', 'human_jianshi.txt'),
-        ('俗世奇人.txt', 'utf-8', 'sushi_qiren.txt'),
-        ('万历十五年.txt', 'gbk', 'wanli.txt'),
+        ('human_jianshi.txt', 'gb18030', 'human_jianshi.txt'),
+        ('sushi_qiren.txt', 'utf-8', 'sushi_qiren.txt'),
+        ('wanli.txt', 'gbk', 'wanli.txt'),
         ('chinese_samples.txt', 'utf-8', 'wiki_samples.txt'),
         ('KFC.txt', 'utf-8', 'kfc_original.txt'),
     ]
@@ -136,7 +136,7 @@ def main():
             continue
         print(f"Processing {src_name} ...")
 
-        if src_name in ('人类简史.txt', '俗世奇人.txt', '万历十五年.txt'):
+        if src_name in ('human_jianshi.txt', 'sushi_qiren.txt', 'wanli.txt'):
             cleaned = process_book(src, encoding=encoding)
         else:
             with open(src, 'r', encoding=encoding) as f:

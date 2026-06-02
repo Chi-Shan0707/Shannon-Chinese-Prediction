@@ -37,6 +37,7 @@ group_colors = {
 colors = [group_colors[g] for g in groups]
 
 BASE = '/mnt/d/FudanUniversity/Fdu1/Introduction-to-Linguistic-Science/pj/'
+FIGS = BASE + 'figs/'
 
 # ===== Fig 1: Entropy bar chart =====
 fig1, ax1 = plt.subplots(figsize=(5.5, 3))
@@ -64,8 +65,8 @@ legend_elements = [
 ]
 ax1.legend(handles=legend_elements, loc='upper left', frameon=False, ncol=2, fontsize=7)
 fig1.tight_layout()
-fig1.savefig(BASE + 'fig_entropy.png')
-fig1.savefig(BASE + 'fig_entropy.pdf')
+fig1.savefig(FIGS + 'fig_entropy.png')
+fig1.savefig(FIGS + 'fig_entropy.pdf')
 print('Saved fig_entropy')
 
 # ===== Fig 2: Scatter — Match Rate vs Entropy =====
@@ -87,8 +88,8 @@ ax2.set_ylim(89, 96)
 ax2.yaxis.grid(True, linestyle=':', linewidth=0.4, alpha=0.5)
 ax2.set_axisbelow(True)
 fig2.tight_layout()
-fig2.savefig(BASE + 'fig_scatter.png')
-fig2.savefig(BASE + 'fig_scatter.pdf')
+fig2.savefig(FIGS + 'fig_scatter.png')
+fig2.savefig(FIGS + 'fig_scatter.pdf')
 print('Saved fig_scatter')
 
 # ===== Fig 3: Rank-1 horizontal bar =====
@@ -107,8 +108,8 @@ ax3.set_yticklabels(sorted_cats)
 ax3.set_xlabel('Rank-1 accuracy (%)')
 ax3.set_xlim(0, 32)
 fig3.tight_layout()
-fig3.savefig(BASE + 'fig_rank1.png')
-fig3.savefig(BASE + 'fig_rank1.pdf')
+fig3.savefig(FIGS + 'fig_rank1.png')
+fig3.savefig(FIGS + 'fig_rank1.pdf')
 print('Saved fig_rank1')
 
 print('Done.')

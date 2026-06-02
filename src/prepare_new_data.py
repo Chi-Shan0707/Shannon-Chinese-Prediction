@@ -3,8 +3,8 @@ import re
 from pathlib import Path
 
 CLEAN_DIR = Path(__file__).resolve().parent.parent / 'data' / 'clean'
-RAW_LIT = Path(__file__).resolve().parent.parent / 'data' / 'raw_literature'
-RAW_NET = Path(__file__).resolve().parent.parent / 'data' / 'raw_internet_twists.txt'
+RAW_LIT = Path(__file__).resolve().parent.parent / 'data' / 'raw' / 'literature'
+RAW_NET = Path(__file__).resolve().parent.parent / 'data' / 'raw' / 'internet_twists.txt'
 
 CLEAN_DIR.mkdir(exist_ok=True)
 
