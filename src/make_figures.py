@@ -112,4 +112,79 @@ fig3.savefig(FIGS + 'fig_rank1.png')
 fig3.savefig(FIGS + 'fig_rank1.pdf')
 print('Saved fig_rank1')
 
+# ===== Fig 4: H(N) decay with power-law fit =====
+import json
+from collections import defaultdict
+from scipy.optimize import curve_fit
+
+fig4, ax4 = plt.subplots(figsize=(5.5, 3.8))
+
+hn_cats = {
+    'sanguo':        ('SanGuo',     OKABE_ITO[0]),
+    'bailuyuan':     ('BaiLuYuan',  OKABE_ITO[1]),
+    'human_jianshi': ('YuJianShi',  OKABE_ITO[2]),
+    'tianlongbabu':  ('TianLong',   OKABE_ITO[5]),
+}
+
+LOG_EDGES = [5, 10, 20, 40, 70, 110, 160, 200]
+
+def power_law(N, H_inf, a, b):
+    return H_inf + a * N**(-b)
+
+def log_bin_idx(pl):
+    for i in range(len(LOG_EDGES) - 1):
+        if pl < LOG_EDGES[i + 1]:
+            return i
+    return len(LOG_EDGES) - 2
+
+for cat_file, (label, color) in hn_cats.items():
+    bins = defaultdict(list)
+    with open(BASE + f'results/{cat_file}.jsonl') as f:
+        for line in f:
+            d = json.loads(line)
+            pl = d['prefix_len']
+            if pl >= 5:
+                bins[log_bin_idx(pl)].append(d['entropy'])
+
+    N_data, H_data = [], []
+    for bi in sorted(bins.keys()):
+        es = bins[bi]
+        if len(es) >= 3:
+            N_data.append((LOG_EDGES[bi] + LOG_EDGES[bi + 1]) / 2)
+            H_data.append(np.mean(es))
+
+    N_arr = np.array(N_data)
+    H_arr = np.array(H_data)
+
+    popt, _ = curve_fit(power_law, N_arr, H_arr, p0=[3.0, 5.0, 0.6], maxfev=10000)
+    H_inf, a_fit, b_fit = popt
+    residuals = H_arr - power_law(N_arr, *popt)
+    ss_res = np.sum(residuals**2)
+    ss_tot = np.sum((H_arr - np.mean(H_arr))**2)
+    r2 = 1 - ss_res / ss_tot
+
+    ax4.scatter(N_arr, H_arr, color=color, s=22, alpha=0.8, zorder=3)
+
+    N_fit = np.linspace(5, 300, 400)
+    H_fit = power_law(N_fit, *popt)
+    ax4.plot(N_fit, H_fit, color=color, linewidth=1.3,
+             label=f'{label}  $H_\\infty$={H_inf:.1f}  $R^2$={r2:.2f}')
+
+    ax4.axhline(y=H_inf, color=color, linestyle=':', linewidth=0.6, alpha=0.4)
+
+ax4.axhline(y=9.62, color='#aaa', linestyle='--', linewidth=0.7, alpha=0.6)
+ax4.text(290, 9.82, '$H_0 = 9.62$', fontsize=7, color='#999', ha='right')
+
+ax4.set_xlabel('Context length $N$ (characters)')
+ax4.set_ylabel('Conditional entropy $H(N)$ (bits)')
+ax4.set_xlim(0, 310)
+ax4.set_ylim(0, 11)
+ax4.legend(loc='upper right', frameon=False, fontsize=7.5)
+ax4.yaxis.grid(True, linestyle=':', linewidth=0.4, alpha=0.4)
+ax4.set_axisbelow(True)
+fig4.tight_layout()
+fig4.savefig(FIGS + 'fig_hn_decay.png')
+fig4.savefig(FIGS + 'fig_hn_decay.pdf')
+print('Saved fig_hn_decay')
+
 print('Done.')
