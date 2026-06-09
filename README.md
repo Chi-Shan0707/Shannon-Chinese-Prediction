@@ -3,10 +3,9 @@
 Shannon-style token-match prediction experiment for Chinese texts using a local
 Qwen3-0.6B Base model as an automatic predictor.
 
-Main deliverables:
+Main page:
 
-- `report.html`: Chinese course/report version
-- `report_en.html`: English personal-website post version
+- `index.html`: English GitHub Pages post
 
 ## Method
 

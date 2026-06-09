@@ -203,56 +203,56 @@ footer {
 
 <div class="eyebrow">A tiny Shannon experiment on Chinese</div>
 <h1>I Tried Shannon’s Guessing Game on Chinese Texts</h1>
-<p class="dek">I fed a tiny language model everything from Wikipedia to KFC Thursday memes, just to see where Chinese starts becoming guessable.</p>
+<p class="dek">Wikipedia, dialect fiction, wuxia, and KFC Thursday memes through the same tiny next-token predictor.</p>
 <div class="meta">Qwen3-0.6B Base · 11 Chinese text categories · 59,496 prediction steps</div>
 
 <section class="lead">
   <p>When the model saw “因为疯狂”, it wanted to say “星期四” immediately. Rank 1. When it saw “肯德基疯狂”, same story: “星期四” was still right there. But when the setup became “V我50吃一顿...”, the word “肯德基” disappeared from the top guesses.</p>
-  <p>That tiny failure is what made the project interesting. The model knew the phrase, but not always the joke.</p>
-  <p>One thing I love about Shannon’s entropy experiment is how physical it feels. Someone just sits there guessing the next letter, and the text gives up its structure one mistake at a time. I wanted to try the same idea on Chinese, and immediately ran into the obvious problem: what exactly is “the next symbol”?</p>
-  <p>Chinese gives you characters, words, idioms, names, memes, and then tokenizers come in and slice everything into their own strange pieces. So I let a small local model be the guesser.</p>
+  <p>The phrase was easy. The joke was not.</p>
+  <p>Shannon’s entropy experiment has a pleasingly physical shape: someone guesses the next letter, gets it wrong, guesses again, and the text gives up its structure one mistake at a time. Chinese breaks the neatness of that game. What is the next symbol: a character, a word, an idiom, a name, a meme phrase, or whatever strange shard the tokenizer has made?</p>
+  <p>So the human guesser became Qwen3-0.6B, a small local model asked to guess Chinese one token at a time.</p>
 </section>
 
-<h2>The Trick Was Not Asking for One Number</h2>
+<h2>Stop Asking for One Entropy Number</h2>
 
-<p class="claim">I stopped trying to get “the entropy of Chinese” and started asking a smaller question: where does the model suddenly know what comes next?</p>
+<p class="claim">“The entropy of Chinese” is too blunt a target. The sharper question is local: where does the model suddenly know what comes next?</p>
 
-<p>This is not a claim about the true entropy of Chinese. The model is just my measuring stick. But the measuring stick is still useful: at every position in a text, it shows how concentrated or scattered its expectations are. If the next phrase is obvious, probability collapses onto a few candidates. If the text gets dialectal, literary, weird, or shaped like a punchline, the model starts spreading its bets.</p>
+<p>Qwen3-0.6B is a very particular measuring stick. At every position, it exposes whether its expectations are narrow or scattered. Obvious continuations collapse onto a few tokens. Dialect, literary phrasing, local voice, and punchlines make the distribution fan out.</p>
 
-<p>That made the project feel less like a benchmark and more like poking at texture. I was not really asking whether the model was good. I was asking what kind of Chinese made it pause.</p>
+<p>That turns the model into a texture probe: a nervous reader whose hesitations are visible.</p>
 
 <div class="thread">
   <div>
-    <strong>Genre shows up in the curve.</strong>
-    Wikipedia and news look smooth and predictable. Dialect fiction does not. That sounds obvious, but it is satisfying to watch the difference appear as a curve rather than as a vague literary impression.
+    <strong>Genre leaves a trace.</strong>
+    Wikipedia and news look smooth. Dialect fiction does not. The difference stops being only a reading impression and becomes a curve.
   </div>
   <div>
-    <strong>Formula helps, but not the way I expected.</strong>
-    <em>Romance of the Three Kingdoms</em> is easy to hit in the top-1000 candidates, but not the lowest-entropy text. A formula can make the right answer available without making the model completely certain.
+    <strong>Formula is not certainty.</strong>
+    <em>Romance of the Three Kingdoms</em> is easy to hit in the top-1000 candidates, but not the lowest-entropy text. The right answer can be nearby without being inevitable.
   </div>
   <div>
-    <strong>The meme test split cleanly in two.</strong>
-    “疯狂 → 星期四” is nearly automatic. “吃 → 肯德基” is not. The first is a fixed collocation; the second asks the model to recognize the social script of the meme.
+    <strong>The meme splits open.</strong>
+    “疯狂 → 星期四” is nearly automatic. “吃 → 肯德基” is not. One is a fixed phrase; the other needs the social script.
   </div>
   <div>
-    <strong>Context helps in a very Shannon-looking way.</strong>
-    More context helps, but the first few dozen characters do most of the work. After that, the returns flatten. That is the part that feels closest to Shannon.
+    <strong>Context bends the curve.</strong>
+    More context helps, but the first few dozen characters do most of the work. After that, the returns flatten.
   </div>
 </div>
 
-<p>This became the fun part for me. Instead of just saying “these texts feel different,” I could point to the exact places where the model got nervous: where it became confident, where it hesitated, and what kind of language caused the hesitation.</p>
+<p>The vague readerly hunch became inspectable: confidence spikes, hesitation points, and phrases that made the distribution scatter.</p>
 
-<h2>How I Made the Model Guess</h2>
+<h2>The Guessing Game, Automated</h2>
 
-<p>I let the model read each text one tiny step at a time. At each step I asked two things: is the real continuation somewhere among its guesses, and how spread-out are those guesses?</p>
+<p>Each text is read one tiny step at a time. At each step there are two questions: is the real continuation somewhere among the model’s guesses, and how spread-out are those guesses?</p>
 
-<p>Technical detail: the script checks the model’s top-1000 next-token candidates. If one candidate is a prefix of the real continuation, it counts as a hit and the script advances by that token length. If none matches, it records a miss and moves forward by one character.</p>
+<p>The script checks the model’s top-1000 next-token candidates. If one candidate is a prefix of the real continuation, it counts as a hit and the script advances by that token length. If none matches, it records a miss and moves forward by one character.</p>
 
-<p>The main number I track is just the entropy of the model’s next-token distribution:</p>
+<p>The tracked number is the entropy of the model’s next-token distribution:</p>
 
 <p>\[H(q)=-\sum_t q(t)\log q(t).\]</p>
 
-<p>Because the code uses natural logarithms, the unit is <strong>nats per prediction step</strong>. This detail matters. These values are not directly comparable to character-level results such as bits/character. But inside this little setup, they are good enough to compare one text against another.</p>
+<p>The code uses natural logarithms, so the unit is <strong>nats per prediction step</strong>. These are not bits per character. They are a relative scale inside this setup: one text against another, same model, same guessing game.</p>
 
 <div class="metric-grid" aria-label="Key numbers">
   <div class="metric"><strong>59,496</strong><span>prediction steps across 11 categories</span></div>
@@ -261,9 +261,9 @@ footer {
   <div class="metric"><strong>Rank 1–2</strong><span>model hits for “疯狂 → 星期四”</span></div>
 </div>
 
-<h2>What I Fed the Model</h2>
+<h2>The Corpus Was Deliberately Unfair</h2>
 
-<p>I used 11 categories, ranging from Wikipedia and news to classical fiction, wuxia, modern literature, dialect fiction, internet twists, and KFC Thursday memes. I was not trying to build a balanced corpus. I wanted to throw very different kinds of Chinese into the same machine and see which differences still showed up.</p>
+<p>Wikipedia, news, classical fiction, wuxia, modern literature, dialect fiction, internet twists, and KFC Thursday memes all went through the same tiny predictor. It was a stress test, not a balanced corpus.</p>
 
 <table>
   <tr><th>What stood out</th><th>Text</th><th>Why it mattered</th></tr>
@@ -280,20 +280,20 @@ footer {
   <figcaption>Figure 1. Wikipedia gives the model the easiest ride; dialect fiction makes it spread its bets.</figcaption>
 </figure>
 
-<p>This is roughly what I expected. Wikipedia and news are built from conventional expository patterns: definitions, named entities, time-place relations, topic labels, and reporting formulas. Dialect fiction makes the model work harder. There is more local voice, more spoken rhythm, and more phrasing that probably did not appear a million times in the model’s training data.</p>
+<p>No shock here: Wikipedia and news are paved roads for a language model. Definitions, named entities, time-place relations, topic labels, reporting formulas. Dialect fiction is gravel. It carries local voice, spoken rhythm, and phrasings the model has not seen in the same industrial quantities.</p>
 
-<p>I like this result because it makes a fuzzy reading feeling show up as a curve. “方言味儿” and “口语感” are not just stylistic impressions here; they become a higher-entropy prediction environment.</p>
+<p>The curve gives a number to a readerly hunch: “方言味儿” and “口语感” are not just vibes here; they become a higher-entropy prediction environment.</p>
 
-<h2>The Three Kingdoms Surprise</h2>
+<h2>Three Kingdoms Lands in the Weird Corner</h2>
 
 <figure>
   <img src="figs/fig_scatter.png" width="1599" height="1118" loading="lazy" decoding="async" alt="Scatter plot of entropy against top-1000 match rate. Romance of the Three Kingdoms has unusually high match rate.">
-  <figcaption>Figure 2. <em>Three Kingdoms</em> sits in the funny corner: easy to include in the top 1000, but not especially low-entropy.</figcaption>
+  <figcaption>Figure 2. <em>Three Kingdoms</em> sits in the funny corner: easy to include in the top 1000, while still carrying more entropy than the easiest texts.</figcaption>
 </figure>
 
-<p><em>Romance of the Three Kingdoms</em> has the highest top-1000 match rate here: 95.0%. But it does not have the lowest mean entropy. This was my favorite small surprise.</p>
+<p><em>Romance of the Three Kingdoms</em> has the highest top-1000 match rate here: 95.0%. But it does not have the lowest mean entropy. That was the result I kept coming back to.</p>
 
-<p>My guess is this: formulaic writing gets the right continuation into the model’s neighborhood, but the model can still remain uncertain among several plausible continuations. Classical narrative formulas such as “却说”, “话说”, “玄德曰”, battle descriptions, titles, and repeated narrative patterns make the text guessable in a broad sense. But the probability mass is not necessarily concentrated on one token as strongly as in Wikipedia.</p>
+<p>Here is the distinction: formula can put the right continuation nearby without making it inevitable. “却说”, “话说”, “玄德曰”, battle descriptions, titles, and repeated narrative machinery all help the model find the neighborhood. They do not necessarily force probability mass onto one token the way Wikipedia often does.</p>
 
 <p>So “the model can find it somewhere” is not the same as “the model is sure.”</p>
 
@@ -304,7 +304,7 @@ footer {
 
 <h2>The Model Knows “Crazy Thursday”—But Not Always the Joke</h2>
 
-<p>If you have spent any time on Chinese internet, you know the move: a normal or dramatic setup suddenly turns into “today is Crazy Thursday, V me 50.” So I tried poking the punchline directly.</p>
+<p>If you have spent any time on Chinese internet, you know the move: a normal or dramatic setup suddenly turns into “today is Crazy Thursday, V me 50.” So I went straight for the trapdoor.</p>
 
 <table>
   <tr><th>Prefix</th><th>Target</th><th>Rank</th></tr>
@@ -316,13 +316,13 @@ footer {
   <tr><td>...缺五十块买</td><td class="hi">肯德基</td><td class="worst">not found</td></tr>
 </table>
 
-<p>The model clearly has “疯狂星期四” stored as a chunk. But “eat → KFC” is much harder, because “eat” can be followed by countless food nouns. Getting to KFC requires more than grammar; it requires recognizing the bit.</p>
+<p>The model has “疯狂星期四” as a chunk. But “eat → KFC” is a different skill. “Eat” opens the whole food universe; landing on KFC means recognizing the meme’s social script, not just completing a collocation.</p>
 
-<p>That is why the meme test ended up being more useful than I expected. It splits predictability into two things: phrases the model has memorized, and jokes whose setup it actually has to recognize.</p>
+<p>The meme test split predictability in two: memorized phrases on one side, recognized setup on the other. The model could recite the slogan before it could smell the joke.</p>
 
 <h2>More Context Helps—Until It Mostly Doesn’t</h2>
 
-<p>After genre and memes, I wanted to ask the more Shannon-like question: how much previous text actually helps? For four longer texts, I extended the context window from \(N=5\) up to about \(N=200\) and fit a simple decay curve:</p>
+<p>The more Shannon-like question is context: how much previous text actually helps? Four longer texts, a context window stretched from \(N=5\) to about \(N=200\), and a simple decay curve:</p>
 
 <p>\[H(N)=H_\infty+aN^{-b}.\]</p>
 
@@ -339,27 +339,27 @@ footer {
   <tr><td><em>Demi-Gods and Semi-Devils</em></td><td>3.05</td><td>0.955</td><td>0.93</td><td>approaches formulaic narrative after longer context</td></tr>
 </table>
 
-<p>I would not over-interpret the exact fitted parameters. The shape matters more than the fitted numbers: context helps a lot early, then helps less and less. The first few dozen characters buy you a lot; the next hundred buy less. That curve feels very Shannon to me.</p>
+<p>The bend in the curve matters more than the fitted parameters. Early context is powerful: the first few dozen characters buy a lot, the next hundred much less. That flattening is the most Shannon-looking part of the whole experiment.</p>
 
-<h2>What This Is Not Measuring</h2>
+<h2>Token Entropy, Not Character Entropy</h2>
 
-<p>Here is the caveat I do not want to bury. It would be tempting to call this “the entropy of Chinese.” I would not.</p>
+<p>The numbers here are model-side token entropies. They measure how scattered Qwen3-0.6B’s next-token distribution is at each step.</p>
 
 <ul>
-  <li>The unit is nats/step, not bits/character.</li>
-  <li>The predictor is one small language model, not the true distribution of Chinese.</li>
-  <li>The game uses token matching, while classic entropy estimates are usually character-level.</li>
+  <li>Unit: nats per prediction step, not bits per character.</li>
+  <li>Predictor: one small model, not the true distribution of Chinese.</li>
+  <li>Granularity: token matching, not character-level guessing.</li>
 </ul>
 
-<p>If I wanted to do this properly at the character level, I would need to fold token probabilities back into character probabilities:</p>
+<p>A character-level version would need to fold token probabilities back into character probabilities:</p>
 
 <p>\[P(c\mid C)=\sum_{t:\operatorname{prefix}(t)=c} P(t\mid C).\]</p>
 
-<p>That would make the comparison with older bits-per-character work much less awkward. This version is the flashlight walk: look for the interesting shapes first, then decide whether it is worth building the sharper instrument.</p>
+<p>That is the route to cleaner comparison with older bits-per-character work. Here, the token-level version is doing a different job: finding the strange shapes first.</p>
 
-<h2>What I Still Find Interesting</h2>
+<h2>Where the Linguistics Sneaks In</h2>
 
-<p>The reason I kept caring about this was that the questions felt linguistic, not just model-y:</p>
+<p>The questions that survived had more to do with language than with scores:</p>
 
 <ul>
   <li>Which kinds of Chinese make the model hesitate?</li>
@@ -368,17 +368,11 @@ footer {
   <li>How much context do you need before more text stops helping much?</li>
 </ul>
 
-<p>Those questions feel more interesting to me than one final entropy number. That is why I am putting this here, as a note rather than a paper: it is a small computational note about texture, not an attempt to solve Chinese information theory.</p>
+<p>A single entropy number would flatten the best part. Predictability has several shapes. A text can be formulaic enough to put the right continuation nearby while still leaving the model unsure about the distribution. Another text can be ordinary in topic but jagged in voice. A meme can be locally obvious and globally slippery.</p>
 
-<h2>If I Had to Keep One Sentence</h2>
+<p>Different Chinese texts become predictable in different ways. Even a tiny local model can point to the hiding places.</p>
 
-<p>It would be:</p>
-
-<p class="lead">A tiny model cannot tell me the entropy of Chinese, but it can show me where different Chinese texts make prediction easy, weird, or fragile.</p>
-
-<p>If I come back to this, I want to add character-level probabilities, confidence intervals, more models, and more spoken/web-native text. Even in this rough form, it already shows the thing I was hoping to see: different Chinese texts are predictable in different ways, and even a tiny local model can help point to where those differences are hiding.</p>
-
-<h2>Full Table, If You Want the Numbers</h2>
+<h2>The Numbers</h2>
 
 <table>
   <tr><th>Category</th><th>Source</th><th>Steps</th><th>Match rate</th><th>Rank-1</th><th>Mean H</th></tr>
@@ -398,7 +392,8 @@ footer {
 <p class="small">Mean H is next-token distribution entropy in nats/step. Lower means the model’s distribution is more concentrated.</p>
 
 <footer>
-  Shannon-style Chinese prediction · Personal research note · 2026
+  Shannon-style Chinese prediction · Personal research note · 2026<br>
+  Source and code: <a href="https://github.com/Chi-Shan0707/Shannon-Chinese-Prediction">github.com/Chi-Shan0707/Shannon-Chinese-Prediction</a>
 </footer>
 
 </main>
