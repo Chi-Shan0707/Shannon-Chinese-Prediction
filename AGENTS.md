@@ -1,6 +1,6 @@
 # Shannon Chinese Prediction Experiment
 
-Replicate Shannon's (1951) prediction experiment for Chinese characters using Qwen3-0.6B Base as a virtual subject.
+Replicate Shannon's (1951) prediction experiment for Chinese texts using Qwen3-0.6B Base as an automatic predictor.
 
 ## Quick Start
 
@@ -22,8 +22,8 @@ python src/make_figures.py
 Token-match Shannon guessing game:
 
 1. Feed text prefix to model
-2. Model returns ranked token predictions (full vocab, 151,643 tokens)
-3. Check if any predicted token is a prefix of the remaining text
+2. Model computes a full-vocabulary next-token distribution
+3. Check whether any top-1000 token is a prefix of the remaining text
 4. First match → record rank, probability, entropy; advance by token length
 5. No match in top-K → record miss; advance 1 char
 
@@ -63,8 +63,10 @@ results/                 JSONL output (gitignored, local only)
 
 ## Results Summary
 
-| Category | Steps | Match Rate | Rank-1 | Avg H (bits) |
-|----------|-------|------------|--------|-------------|
+Entropy values are next-token distribution entropy in nats/step, not character-level bits/char entropy rates.
+
+| Category | Steps | Match Rate | Rank-1 | Avg H (nats/step) |
+|----------|-------|------------|--------|-------------------|
 | wiki | 4228 | 94.0% | 27.6% | 3.53 |
 | news | 2693 | 92.0% | 24.6% | 3.80 |
 | internet_twists | 1323 | 92.3% | 25.6% | 3.94 |
@@ -77,16 +79,16 @@ results/                 JSONL output (gitignored, local only)
 | sishitongtang | 6188 | 91.0% | 18.1% | 4.38 |
 | sushi_qiren | 6885 | 90.0% | 19.6% | 4.48 |
 
-Extended experiment (N=5→200, power-law fit H(N)=H∞+a·N^(-b)):
+Extended experiment (N=5→200, power-law fit H(N)=H∞+a·N^(-b), nats/step):
 
-| Text | H∞ | R² | Redundancy |
-|------|-----|-----|-----------|
-| sanguo | 2.92 | 0.95 | 69.6% |
-| bailuyuan | 3.27 | 0.98 | 66.1% |
-| human_jianshi | 2.90 | 0.82 | 69.8% |
-| tianlongbabu | 2.88 | 0.93 | 70.0% |
+| Text | H∞ | b | R² |
+|------|-----|---|-----|
+| sanguo | 3.00 | 0.681 | 0.99 |
+| bailuyuan | 3.22 | 0.541 | 0.99 |
+| human_jianshi | 3.21 | 1.035 | 0.93 |
+| tianlongbabu | 3.05 | 0.955 | 0.93 |
 
-H₀=9.62 bits/char (Sun & Sun). Shannon English: H₀=4.03, H∞≈1.0, redundancy≈75%.
+Do not compute Chinese redundancy by directly dividing these token-level nats/step values by character-level H₀. Strict redundancy requires character-level probability aggregation first.
 
 ## Environment
 

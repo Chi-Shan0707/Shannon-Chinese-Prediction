@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How Predictable Is Chinese? A Shannon-Style Experiment with a Small Language Model</title>
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(', '\\)']],
+    displayMath: [['\\[', '\\]']],
+    processEscapes: true
+  },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --paper: #fbfaf7;
+  --ink: #242424;
+  --muted: #696969;
+  --faint: #8a8a8a;
+  --line: #ddd7cd;
+  --soft: #f1eee6;
+  --accent: #9a6a00;
+  --green: #217247;
+  --red: #aa2e2e;
+}
+body {
+  font-family: Georgia, "Times New Roman", "Noto Serif", serif;
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.78;
+  font-size: 17px;
+}
+.container { max-width: 900px; margin: 0 auto; padding: 48px 22px 72px; }
+.eyebrow {
+  text-align: center;
+  color: var(--accent);
+  font-size: 0.78em;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+}
+h1 {
+  text-align: center;
+  font-size: 2.05em;
+  line-height: 1.22;
+  font-weight: 700;
+  letter-spacing: 0;
+  max-width: 760px;
+  margin: 0 auto 12px;
+}
+.dek {
+  text-align: center;
+  color: var(--muted);
+  max-width: 760px;
+  margin: 0 auto 10px;
+  font-size: 1.02em;
+  line-height: 1.6;
+}
+.meta { text-align: center; color: var(--faint); font-size: 0.86em; margin-bottom: 30px; }
+h2 {
+  font-size: 1.3em;
+  line-height: 1.35;
+  margin: 42px 0 14px;
+  color: #303030;
+  border-left: 3px solid var(--accent);
+  padding-left: 12px;
+}
+h3 { font-size: 1.08em; margin: 28px 0 10px; color: #404040; }
+p { margin: 12px 0; }
+a { color: #7b5600; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.lead {
+  font-size: 1.04em;
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 18px 20px;
+  margin: 24px 0 28px;
+}
+.note, .contribution {
+  background: rgba(255,255,255,0.42);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px 18px;
+  margin: 20px 0 26px;
+}
+.note strong, .contribution strong { color: #444; }
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 22px 0 30px;
+}
+.metric {
+  border-top: 2px solid var(--accent);
+  background: rgba(255,255,255,0.40);
+  padding: 11px 12px 12px;
+}
+.metric strong {
+  display: block;
+  font-size: 1.22em;
+  line-height: 1.3;
+}
+.metric span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.80em;
+  line-height: 1.45;
+  margin-top: 3px;
+}
+ol, ul { margin: 12px 0 12px 1.4em; }
+li { margin: 8px 0; padding-left: 2px; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0 22px;
+  font-size: 0.88em;
+  background: rgba(255,255,255,0.36);
+}
+th {
+  text-align: left;
+  background: #ebe6dc;
+  border-bottom: 2px solid #d2c7ad;
+  padding: 8px 10px;
+}
+td {
+  border-bottom: 1px solid #e5dfd6;
+  padding: 7px 10px;
+  vertical-align: top;
+}
+.best { color: var(--green); font-weight: 700; }
+.worst { color: var(--red); font-weight: 700; }
+.hi { color: var(--accent); font-weight: 700; }
+figure { margin: 28px 0 30px; }
+figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: white;
+  border: 1px solid #e8e2d8;
+}
+figcaption {
+  color: #5d5d5d;
+  font-size: 0.84em;
+  line-height: 1.55;
+  text-align: center;
+  margin-top: 8px;
+}
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  background: #eee9df;
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 0.88em;
+}
+.small { color: var(--muted); font-size: 0.9em; }
+footer {
+  margin-top: 54px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  text-align: center;
+  color: var(--faint);
+  font-size: 0.84em;
+}
+@media (max-width: 760px) {
+  body { font-size: 16px; }
+  .container { padding: 34px 15px 54px; }
+  h1 { font-size: 1.58em; }
+  .metric-grid { grid-template-columns: repeat(2, 1fr); }
+  table { font-size: 0.80em; }
+  th, td { padding: 6px 7px; }
+}
+</style>
+</head>
+<body>
+<main class="container">
+
+<div class="eyebrow">Language, Entropy, and Chinese Texts</div>
+<h1>How Predictable Is Chinese? Replaying Shannon with a Small Language Model</h1>
+<p class="dek">A personal experiment on Chinese text predictability, internet memes, genre differences, and what happens when context gets longer.</p>
+<div class="meta">Qwen3-0.6B Base · 11 Chinese text categories · 59,496 prediction steps</div>
+
+<section class="lead">
+  <p>Claude Shannon once estimated the entropy of printed English by asking humans to guess the next letter of a text. That setup is charmingly simple for English letters. It becomes awkward for Chinese: the candidate set is not 26 letters, but thousands of characters, plus word-like units and idiomatic chunks. So I tried a modern substitute: let a small language model play the guessing game, record what it predicts, and ask which kinds of Chinese text are easier or harder to predict.</p>
+  <p>The strongest contribution here is not “I measured the final entropy rate of Chinese.” I did not. The stronger and more honest contribution is a reusable observation framework: a Shannon-style token-match game that makes genre differences, formulaic writing, internet meme structure, and context-length effects visible in one experiment.</p>
+</section>
+
+<div class="metric-grid" aria-label="Key numbers">
+  <div class="metric"><strong>59,496</strong><span>prediction steps across 11 categories</span></div>
+  <div class="metric"><strong>3.53 → 4.48</strong><span>mean next-token entropy, nats/step</span></div>
+  <div class="metric"><strong>95.0%</strong><span>top-1000 match rate for <em>Romance of the Three Kingdoms</em></span></div>
+  <div class="metric"><strong>Rank 1–2</strong><span>model hits for “疯狂 → 星期四”</span></div>
+</div>
+
+<h2>What I Think the Actual Contributions Are</h2>
+
+<div class="contribution">
+  <ol>
+    <li><strong>A Chinese-friendly version of Shannon’s guessing game.</strong> Instead of asking a human to choose from thousands of Chinese characters, the experiment uses a language model as an automatic predictor and searches its top-1000 next-token candidates for the true continuation.</li>
+    <li><strong>A genre map of Chinese predictability.</strong> Encyclopedic and news-style texts are easier for the model; dialect-rich fiction and highly literary prose are harder. This is intuitive, but the experiment makes it quantitative.</li>
+    <li><strong>A useful anomaly: formulaic style is not the same as low entropy.</strong> <em>Romance of the Three Kingdoms</em> has the best top-1000 match rate, but it is not the lowest-entropy text. Formulaic language can help the correct token enter the candidate set without making the whole distribution extremely sharp.</li>
+    <li><strong>A small probe into meme predictability.</strong> The model nails fixed collocations such as “疯狂 → 星期四”, but punchline-like continuations such as “吃 → 肯德基” are much less stable. That difference is a nice way to separate local statistical collocation from cultural or pragmatic expectation.</li>
+    <li><strong>A context-length curve.</strong> When context grows from a few characters to about 200 characters, uncertainty falls, but with diminishing returns. This is the most Shannon-like part of the project.</li>
+    <li><strong>A useful negative result about measurement.</strong> The numbers here are model next-token entropy in nats/step. They should not be over-sold as character-level bits/char entropy rates. Making that distinction explicit is part of the value of the experiment.</li>
+  </ol>
+</div>
+
+<p>If I were turning this into a paper, I would need a more careful character-level probability aggregation method. For a personal website post, though, this version is already interesting: it shows how far a small local language model can go as a microscope for Chinese textual regularity.</p>
+
+<h2>The Game: Token-Match Prediction</h2>
+
+<p>The experiment walks through a text from left to right. At each position, the model sees the prefix and computes a next-token probability distribution. I then check whether any of the top-1000 tokens is a prefix of the remaining original text. The first matching token counts as a hit; its rank, probability, and the full distribution entropy are recorded. If none of the top-1000 candidates matches, the experiment records a miss and advances by one character.</p>
+
+<p>In notation, the main entropy value is the model distribution entropy</p>
+
+<p>\[H(q)=-\sum_t q(t)\log q(t).\]</p>
+
+<p>Because the code uses natural logarithms, the unit is <strong>nats per prediction step</strong>. This is important. These values are not directly comparable to character-level results such as bits/character. They are still very useful for comparing texts within the same model and the same experimental setup.</p>
+
+<h2>The Texts</h2>
+
+<p>I used 11 categories, ranging from Wikipedia and news to classical fiction, wuxia, modern literature, dialect fiction, internet twists, and KFC Thursday memes. The point was not to build a balanced corpus. The point was to put very different Chinese registers into the same prediction machine and see which differences survive.</p>
+
+<table>
+  <tr><th>Category</th><th>Source</th><th>Steps</th><th>Match rate</th><th>Rank-1</th><th>Mean H</th></tr>
+  <tr><td>wiki</td><td>Wikipedia samples</td><td>4,228</td><td>94.0%</td><td class="best">27.6%</td><td class="best">3.53</td></tr>
+  <tr><td>news</td><td>news articles</td><td>2,693</td><td>92.0%</td><td>24.6%</td><td>3.80</td></tr>
+  <tr><td>internet_twists</td><td>internet twists / anti-jokes</td><td>1,323</td><td>92.3%</td><td>25.6%</td><td>3.94</td></tr>
+  <tr><td>human_jianshi</td><td><em>Sapiens</em>, Chinese edition</td><td>6,450</td><td>91.6%</td><td>24.7%</td><td>3.95</td></tr>
+  <tr><td>kfc</td><td>KFC Thursday memes</td><td>1,497</td><td>91.4%</td><td>27.5%</td><td>3.95</td></tr>
+  <tr><td>sanguo</td><td><em>Romance of the Three Kingdoms</em></td><td>7,818</td><td class="best">95.0%</td><td>25.7%</td><td>4.00</td></tr>
+  <tr><td>wanli</td><td><em>1587, A Year of No Significance</em></td><td>7,590</td><td>91.3%</td><td>23.4%</td><td>4.07</td></tr>
+  <tr><td>tianlongbabu</td><td><em>Demi-Gods and Semi-Devils</em></td><td>7,425</td><td>92.0%</td><td>24.2%</td><td>4.09</td></tr>
+  <tr><td>bailuyuan</td><td><em>White Deer Plain</em></td><td>7,399</td><td>90.1%</td><td>20.1%</td><td>4.12</td></tr>
+  <tr><td>sishitongtang</td><td><em>Four Generations under One Roof</em></td><td>6,188</td><td>91.0%</td><td class="worst">18.1%</td><td>4.38</td></tr>
+  <tr><td>sushi_qiren</td><td><em>Marvelous Tales of the Marketplace</em></td><td>6,885</td><td>90.0%</td><td>19.6%</td><td class="worst">4.48</td></tr>
+</table>
+
+<p class="small">Mean H is next-token distribution entropy in nats/step. Lower means the model’s distribution is more concentrated.</p>
+
+<h2>Result 1: Encyclopedic Chinese Is Easy, Dialect Fiction Is Hard</h2>
+
+<figure>
+  <img src="figs/fig_entropy.png" width="1839" height="939" loading="lazy" decoding="async" alt="Bar chart of mean next-token entropy. Wikipedia is lowest, news is second lowest, and dialect fiction is highest.">
+  <figcaption>Figure 1. Mean next-token entropy by text category. Lower values mean the model is more confident about the next token.</figcaption>
+</figure>
+
+<p>The ranking makes sense. Wikipedia and news are built from conventional expository patterns: named entities, definitions, reporting formulas, and topic-specific collocations. Dialect-rich fiction is messier. It has more local voice, more spoken rhythm, more idiosyncratic phrasing, and probably less coverage in the model’s training distribution.</p>
+
+<p>What I like about this result is that it turns a literary intuition into a measurable curve. “方言味儿” and “口语感” are not just stylistic impressions here; they show up as a higher-entropy prediction environment for the model.</p>
+
+<h2>Result 2: The Three Kingdoms Anomaly</h2>
+
+<figure>
+  <img src="figs/fig_scatter.png" width="1599" height="1118" loading="lazy" decoding="async" alt="Scatter plot of entropy against top-1000 match rate. Romance of the Three Kingdoms has unusually high match rate.">
+  <figcaption>Figure 2. Entropy versus top-1000 match rate. Bubble area represents Rank-1 accuracy. The axes are zoomed to show differences around the 90–95% match-rate range.</figcaption>
+</figure>
+
+<p><em>Romance of the Three Kingdoms</em> has the highest top-1000 match rate in the experiment: 95.0%. But it does not have the lowest mean entropy. This is the best small surprise in the project.</p>
+
+<p>My interpretation: formulaic writing helps the correct continuation appear somewhere in the high-probability candidate set, but the model can still remain uncertain among several plausible continuations. Classical narrative formulas such as “却说”, “话说”, “玄德曰”, battle descriptions, titles, and repeated narrative patterns make the text guessable in a broad sense. But the probability mass is not necessarily concentrated on one token as strongly as in Wikipedia.</p>
+
+<p>In other words, “the answer is in the top 1000” and “the model is very sure” are not the same statement.</p>
+
+<figure>
+  <img src="figs/fig_rank1.png" width="1568" height="1119" loading="lazy" decoding="async" alt="Rank-1 accuracy chart. Wikipedia and KFC memes are highest; Four Generations under One Roof is lowest.">
+  <figcaption>Figure 3. Rank-1 accuracy. Misses count as non-Rank-1 predictions.</figcaption>
+</figure>
+
+<h2>Result 3: KFC Thursday Is a Collocation Machine</h2>
+
+<p>Chinese internet users know the structure: a normal or dramatic setup suddenly turns into “today is Crazy Thursday, V me 50.” I tested a few punchline positions directly.</p>
+
+<table>
+  <tr><th>Prefix</th><th>Target</th><th>Rank</th></tr>
+  <tr><td>...因为疯狂</td><td class="hi">星期四</td><td class="best">1</td></tr>
+  <tr><td>...肯德基疯狂</td><td class="hi">星期四</td><td class="best">2</td></tr>
+  <tr><td>...今天是疯狂</td><td class="hi">星期四</td><td class="best">1</td></tr>
+  <tr><td>...能给我转50吃</td><td class="hi">肯德基</td><td>252</td></tr>
+  <tr><td>...V我50吃一顿</td><td class="hi">肯德基</td><td class="worst">not found</td></tr>
+  <tr><td>...缺五十块买</td><td class="hi">肯德基</td><td class="worst">not found</td></tr>
+</table>
+
+<p>The model has clearly learned “疯狂星期四” as a fixed phrase. But “eat → KFC” is much harder, because “eat” can be followed by countless food nouns. To predict KFC, the model needs not just local syntax but the meme frame.</p>
+
+<p>This is why I think the meme probe is more than a cute side experiment. It separates two kinds of predictability: local collocation and culturally framed punchline expectation.</p>
+
+<h2>Result 4: Context Helps, But the Returns Diminish</h2>
+
+<p>For four longer texts, I extended the context window from \(N=5\) up to about \(N=200\) and fit a simple decay curve:</p>
+
+<p>\[H(N)=H_\infty+aN^{-b}.\]</p>
+
+<figure>
+  <img src="figs/fig_hn_decay.png" width="1749" height="1119" loading="lazy" decoding="async" alt="Power-law-like decay curves for four long Chinese texts. Entropy falls as context length increases and approaches about three nats per prediction step.">
+  <figcaption>Figure 4. Context-length decay. Points are binned means; curves are power-law fits. This is token-level model entropy, not character-level entropy.</figcaption>
+</figure>
+
+<table>
+  <tr><th>Text</th><th>\(H_\infty\)</th><th>\(b\)</th><th>\(R^2\)</th><th>Reading</th></tr>
+  <tr><td><em>Romance of the Three Kingdoms</em></td><td>3.00</td><td>0.681</td><td>0.99</td><td>smooth decay, stable formulaic style</td></tr>
+  <tr><td><em>White Deer Plain</em></td><td>3.22</td><td>0.541</td><td>0.99</td><td>slower convergence, more literary variation</td></tr>
+  <tr><td><em>Sapiens</em></td><td>3.21</td><td>1.035</td><td>0.93</td><td>large gains from short context</td></tr>
+  <tr><td><em>Demi-Gods and Semi-Devils</em></td><td>3.05</td><td>0.955</td><td>0.93</td><td>approaches formulaic narrative after longer context</td></tr>
+</table>
+
+<p>I would not over-interpret the exact fitted parameters. The qualitative result is the point: context helps a lot early, then helps less and less. The first few dozen characters do much more work than the next hundred. That is exactly the kind of shape Shannon cared about.</p>
+
+<h2>What This Is Not</h2>
+
+<p>This is not a final measurement of Chinese entropy. There are three reasons.</p>
+
+<ul>
+  <li>The unit is nats/step, not bits/character.</li>
+  <li>The predictor is one small language model, not the true distribution of Chinese.</li>
+  <li>The game uses token matching, while classic entropy estimates are usually character-level.</li>
+</ul>
+
+<p>A stricter version would aggregate token probabilities into character probabilities:</p>
+
+<p>\[P(c\mid C)=\sum_{t:\operatorname{prefix}(t)=c} P(t\mid C).\]</p>
+
+<p>That would give a proper character-level conditional entropy chain and make comparison with older bits/character estimates much cleaner. I see this post as the first pass: a way to find the interesting structure before building the stricter estimator.</p>
+
+<h2>Why I Still Think This Is Worth Posting</h2>
+
+<p>The experiment turned out to be interesting because it is not only about a number. It gives a way to ask small, interpretable questions about Chinese:</p>
+
+<ul>
+  <li>Which genres make a language model uncertain?</li>
+  <li>Does formulaic style produce low entropy or merely high candidate-set coverage?</li>
+  <li>Can a model distinguish fixed collocations from meme punchlines?</li>
+  <li>How much context is enough before the returns flatten?</li>
+</ul>
+
+<p>Those questions are more alive than a single entropy estimate. They also fit a personal website better: this is a computational note about language texture, not a claim to have solved Chinese information theory.</p>
+
+<h2>Takeaway</h2>
+
+<p>If I had to state the contribution in one sentence, it would be this:</p>
+
+<p class="lead">I built a Shannon-style prediction game that makes Chinese genre, formulaicity, meme structure, and context-length effects visible through a small language model’s next-token uncertainty.</p>
+
+<p>That contribution is modest, but real. It is also extensible. The next version should add character-level probability aggregation, confidence intervals, more models, and a broader set of spoken and web-native texts. But even in this rougher form, the experiment already shows something I find beautiful: Chinese texts carry very different amounts of predictability, and a tiny local model can help us see where that predictability lives.</p>
+
+<footer>
+  Shannon-style Chinese prediction · Personal research note · 2026
+</footer>
+
+</main>
+</body>
+</html>
