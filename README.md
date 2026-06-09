@@ -6,6 +6,7 @@ Qwen3-0.6B Base model as an automatic predictor.
 Main page:
 
 - `index.html`: English GitHub Pages post
+- `report.html`: Chinese version linked from the post
 
 ## Method
 

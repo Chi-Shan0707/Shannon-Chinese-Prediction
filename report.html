@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>汉语文本的可预测性：一项 Shannon 式 token-match 实验</title>
+<title>让小模型猜中文：从《三国演义》到疯狂星期四</title>
+<link rel="alternate" hreflang="en" href="index.html">
 <script>
 window.MathJax = {
   tex: {
@@ -19,119 +20,218 @@ window.MathJax = {
 * { margin: 0; padding: 0; box-sizing: border-box; }
 :root {
   --paper: #fbfaf7;
-  --ink: #252525;
-  --muted: #686868;
-  --line: #ded9cf;
-  --soft: #f2efe8;
-  --accent: #9b6b00;
-  --good: #207341;
-  --bad: #b02b2b;
+  --ink: #242424;
+  --muted: #696969;
+  --faint: #8a8a8a;
+  --line: #ddd7cd;
+  --soft: #f1eee6;
+  --accent: #9a6a00;
+  --green: #217247;
+  --red: #aa2e2e;
 }
 body {
-  font-family: "Noto Serif SC", "Source Han Serif CN", "Songti SC", Georgia, serif;
+  font-family: "Noto Serif SC", "Source Han Serif CN", "Songti SC", Georgia, "Times New Roman", serif;
   background: var(--paper);
   color: var(--ink);
   line-height: 1.86;
-  font-size: 16px;
+  font-size: 17px;
 }
-.container { max-width: 860px; margin: 0 auto; padding: 42px 22px 64px; }
+.container { max-width: 900px; margin: 0 auto; padding: 48px 22px 72px; }
+.language-switch {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 22px;
+  font-size: 0.82em;
+  line-height: 1;
+  flex-wrap: wrap;
+}
+.language-switch span,
+.language-switch a {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 11px;
+}
+.language-switch span {
+  color: var(--faint);
+  background: rgba(255,255,255,0.28);
+}
+.language-switch a {
+  color: var(--accent);
+  background: rgba(255,255,255,0.58);
+  text-decoration: none;
+}
+.language-switch a:hover {
+  border-color: var(--accent);
+  background: #fff;
+}
+.eyebrow {
+  text-align: center;
+  color: var(--accent);
+  font-size: 0.78em;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+}
 h1 {
   text-align: center;
-  font-size: 1.65em;
-  line-height: 1.35;
+  font-size: 2.0em;
+  line-height: 1.28;
   font-weight: 700;
-  margin-bottom: 10px;
   letter-spacing: 0;
+  max-width: 760px;
+  margin: 0 auto 12px;
 }
-.subtitle, .meta { text-align: center; color: var(--muted); }
-.subtitle { font-size: 0.98em; margin-bottom: 6px; }
-.meta { font-size: 0.86em; margin-bottom: 24px; }
-.abstract, .note, .callout {
-  border: 1px solid var(--line);
-  background: var(--soft);
-  border-radius: 6px;
-  padding: 15px 18px;
-  margin: 18px 0 26px;
+.dek {
+  text-align: center;
+  color: var(--muted);
+  max-width: 760px;
+  margin: 0 auto 10px;
+  font-size: 1.02em;
+  line-height: 1.65;
 }
-.abstract { font-size: 0.93em; }
-.note, .callout { font-size: 0.91em; }
-.note strong, .abstract strong, .callout strong { color: #4d4d4d; }
+.meta { text-align: center; color: var(--faint); font-size: 0.86em; margin-bottom: 30px; }
+.repo-line {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.86em;
+  margin: -18px auto 30px;
+}
+.repo-line a { color: var(--accent); }
 h2 {
-  font-size: 1.18em;
-  margin: 38px 0 14px;
-  color: #333;
+  font-size: 1.3em;
+  line-height: 1.38;
+  margin: 42px 0 14px;
+  color: #303030;
   border-left: 3px solid var(--accent);
-  padding-left: 10px;
+  padding-left: 12px;
 }
-h3 { font-size: 1.05em; margin: 26px 0 10px; color: #424242; }
-p { margin: 10px 0; text-indent: 2em; }
-.no-indent, .abstract p, .note p, .callout p, figure p { text-indent: 0; }
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 14px 0 20px;
-  font-size: 0.88em;
-  background: rgba(255,255,255,0.35);
+h3 { font-size: 1.08em; margin: 28px 0 10px; color: #404040; }
+p { margin: 12px 0; }
+a { color: #7b5600; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.lead {
+  font-size: 1.04em;
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 18px 20px;
+  margin: 24px 0 28px;
 }
-th {
-  background: #ebe6dc;
-  padding: 8px 10px;
-  text-align: left;
-  font-weight: 600;
-  border-bottom: 2px solid #d2c7ad;
+.note, .scene {
+  background: rgba(255,255,255,0.42);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px 18px;
+  margin: 20px 0 26px;
 }
-td { padding: 7px 10px; border-bottom: 1px solid #e4dfd5; vertical-align: top; }
-.best { color: var(--good); font-weight: 700; }
-.worst { color: var(--bad); font-weight: 700; }
-.highlight { color: var(--accent); font-weight: 700; }
+.note strong, .scene strong { color: #444; }
+.claim {
+  font-size: 1.17em;
+  line-height: 1.68;
+  color: #303030;
+  border-left: 3px solid var(--accent);
+  padding: 4px 0 4px 16px;
+  margin: 24px 0;
+}
+.thread {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 20px 0 28px;
+}
+.thread div {
+  background: rgba(255,255,255,0.38);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 15px;
+}
+.thread strong { display: block; margin-bottom: 5px; color: #444; }
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
-  margin: 18px 0 26px;
+  margin: 22px 0 30px;
 }
 .metric {
   border-top: 2px solid var(--accent);
-  background: rgba(255,255,255,0.38);
-  padding: 10px 12px;
+  background: rgba(255,255,255,0.40);
+  padding: 11px 12px 12px;
 }
-.metric strong { display: block; font-size: 1.18em; line-height: 1.35; }
-.metric span { display: block; color: var(--muted); font-size: 0.82em; line-height: 1.55; margin-top: 2px; }
-figure { margin: 24px 0 26px; }
+.metric strong {
+  display: block;
+  font-size: 1.22em;
+  line-height: 1.3;
+}
+.metric span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.80em;
+  line-height: 1.45;
+  margin-top: 3px;
+}
+ol, ul { margin: 12px 0 12px 1.4em; }
+li { margin: 8px 0; padding-left: 2px; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0 22px;
+  font-size: 0.88em;
+  background: rgba(255,255,255,0.36);
+}
+th {
+  text-align: left;
+  background: #ebe6dc;
+  border-bottom: 2px solid #d2c7ad;
+  padding: 8px 10px;
+}
+td {
+  border-bottom: 1px solid #e5dfd6;
+  padding: 7px 10px;
+  vertical-align: top;
+}
+.best { color: var(--green); font-weight: 700; }
+.worst { color: var(--red); font-weight: 700; }
+.hi { color: var(--accent); font-weight: 700; }
+figure { margin: 28px 0 30px; }
 figure img {
   display: block;
   width: 100%;
   height: auto;
-  background: #fff;
-  border: 1px solid #e8e3da;
+  background: white;
+  border: 1px solid #e8e2d8;
 }
 figcaption {
-  color: #5f5f5f;
+  color: #5d5d5d;
   font-size: 0.84em;
-  line-height: 1.65;
+  line-height: 1.55;
   text-align: center;
-  margin-top: 7px;
+  margin-top: 8px;
 }
 code {
-  background: #eee9df;
-  padding: 1px 5px;
-  border-radius: 3px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  background: #eee9df;
+  border-radius: 4px;
+  padding: 1px 5px;
   font-size: 0.88em;
 }
+.small { color: var(--muted); font-size: 0.9em; }
 footer {
-  text-align: center;
-  color: #8b8b8b;
-  font-size: 0.82em;
-  margin-top: 48px;
-  border-top: 1px solid var(--line);
+  margin-top: 54px;
   padding-top: 18px;
+  border-top: 1px solid var(--line);
+  text-align: center;
+  color: var(--faint);
+  font-size: 0.84em;
 }
-@media (max-width: 720px) {
-  body { font-size: 15px; }
-  .container { padding: 30px 14px 48px; }
+@media (max-width: 760px) {
+  body { font-size: 16px; }
+  .container { padding: 34px 15px 54px; }
+  .language-switch { justify-content: center; margin-bottom: 20px; }
+  h1 { font-size: 1.58em; }
   .metric-grid { grid-template-columns: repeat(2, 1fr); }
-  table { font-size: 0.82em; }
+  .thread { grid-template-columns: 1fr; }
+  table { font-size: 0.80em; }
   th, td { padding: 6px 7px; }
 }
 </style>
@@ -139,66 +239,193 @@ footer {
 <body>
 <main class="container">
 
-<h1>汉语文本的可预测性：<br>一项 Shannon 式 token-match 实验</h1>
-<div class="subtitle">用 Qwen3-0.6B Base 作为自动预测器，观察语体、网络梗与上下文长度如何改变模型不确定性</div>
-<div class="meta">复旦大学 · 语言科学导论 · 课程项目报告 · 2026年5月</div>
+<nav class="language-switch" aria-label="语言切换与项目链接">
+  <a href="index.html" hreflang="en" lang="en">English</a>
+  <span>中文</span>
+  <a href="https://github.com/Chi-Shan0707/Shannon-Chinese-Prediction/">GitHub</a>
+</nav>
 
-<section class="abstract" aria-label="摘要">
-  <p><strong>摘要</strong>　Shannon (1951) 通过人类逐字母猜测英语文本，展示了上下文如何压缩语言的不确定性。汉语常用字规模远大于英语字母表，若要求人类在每个位置从数千候选字中猜测，实验成本极高。本文以 Qwen3-0.6B Base 作为自动预测器，对 11 类汉语文本进行 token-match 预测，共完成 59,496 个预测步。实验最稳健的发现是相对排序：维基百科最可预测（平均预测熵 \(H=3.53\) nats/step），《俗世奇人》最高（\(H=4.48\) nats/step）；《三国演义》的 Top-1000 匹配率最高（95.0%），但平均熵并非最低，说明“套路性”并不只表现为整体分布更尖锐。定点测试还显示，模型能稳定预测“疯狂→星期四”这类固化搭配，却难以稳定预测“吃→肯德基”这类依赖梗语境的反转。四部长文本的扩展实验显示，\(H(N)\) 随上下文长度增加而近似幂律下降，提示上下文信息存在边际收益递减。</p>
+<div class="eyebrow">A tiny Shannon experiment on Chinese</div>
+<h1>让小模型猜中文：从《三国演义》到疯狂星期四</h1>
+<p class="dek">同一套下一 token 猜测：维基百科一路平滑，方言小说开始打滑，疯狂星期四在固定短语和梗脚本之间露出缝。</p>
+<div class="meta">Qwen3-0.6B Base · 11 类中文文本 · 59,496 个预测步</div>
+<p class="repo-line">项目仓库：<a href="https://github.com/Chi-Shan0707/Shannon-Chinese-Prediction/">github.com/Chi-Shan0707/Shannon-Chinese-Prediction/</a></p>
+
+<section class="lead">
+  <p>我先拿“疯狂星期四”试水。前缀是“因为疯狂”，模型下一步直接押“星期四”，Rank 1；前缀换成“肯德基疯狂”，它还是马上摸到“星期四”。可一旦句子走到“V我50吃一顿……”，“肯德基”反而不见了。</p>
+  <p>口号会背。笑点要另算。</p>
+  <p>Shannon 当年的猜字实验有一种手工感：猜下一个字母，错了再猜，文本的秩序就在这些错误里慢慢浮出来。中文会把这个游戏弄得更毛糙：下一步到底算一个字、一个词、一个成语、一个人名、一个梗，还是 tokenizer 切出来的一片边角料？</p>
+  <p>我就把猜的人换成 Qwen3-0.6B，让这个小模型沿着中文文本一格一格往前猜。</p>
 </section>
 
-<div class="note">
-  <p><strong>口径说明</strong>　代码使用自然对数计算 \(-\sum_{t} q(t)\log q(t)\)，因此本文报告的主指标是模型下一 token 分布熵，单位为 nats/预测步。它适合比较同一模型、同一实验设计下不同文本的可预测性，但不等同于严格的字符级 bits/char 熵率；与孙帆、孙茂松的 \(H_0=9.62\) bits/char 或 Takahashi 与 Tanaka-Ishii 的 bpc 结果只能作方向性比较。</p>
+<h2>别急着给“中文熵”一个总分</h2>
+
+<p class="claim">总分太粗。真正好看的，是模型在哪一瞬间突然笃定，又在哪一瞬间开始散票。</p>
+
+<p>Qwen3-0.6B 每走到一个位置，都会交出一张概率表：它押哪些 token，押得有多重。顺滑的续写会把概率压到前排；方言、文学腔、地方口吻、反转包袱，会把候选摊开。</p>
+
+<p>好玩的地方在这儿：概率表像一盏斜光，照出纸面的纹理、折痕和毛边。</p>
+
+<div class="thread">
+  <div>
+    <strong>语体会留下痕迹。</strong>
+    维基百科和新闻一路平滑；方言小说明显更颠。原本靠感觉说的“语体差异”，在这里变成了曲线。
+  </div>
+  <div>
+    <strong>套路不等于确定。</strong>
+    《三国演义》最容易进 top-1000，却没有拿到最低熵。正确答案常在附近，但旁边还站着一圈像样的候选。
+  </div>
+  <div>
+    <strong>梗会裂开两层。</strong>
+    “疯狂 → 星期四”几乎自动完成；“吃 → 肯德基”会卡住。前者是固定搭配，后者要接上中文互联网的暗号。
+  </div>
+  <div>
+    <strong>上下文会压弯曲线。</strong>
+    更多上下文当然有用，最值钱的是前几十个字。再往后，收益开始变薄。
+  </div>
 </div>
 
-<div class="metric-grid" aria-label="核心结果">
+<p>读文本时那些很难说清的感觉——顺、涩、熟、拐弯——被拆成了概率上的动作。</p>
+
+<h2>游戏规则：猜中就往前走</h2>
+
+<p>每段文本都被切成很小的预测步。每一步只看两件事：真实下文有没有出现在模型的候选里；模型押这些候选时，到底是集中还是分散。</p>
+
+<p>脚本检查 top-1000 个下一 token。只要某个候选正好贴上真实剩余文本的开头，就算命中，并按这个 token 的长度前进；如果 top-1000 里都贴不上，就记一次 miss，只挪一个字符。</p>
+
+<p>核心记录的是模型下一 token 分布的熵：</p>
+
+<p>\[H(q)=-\sum_t q(t)\log q(t).\]</p>
+
+<p>代码用自然对数，所以单位是 <strong>nats per prediction step</strong>。它适合做这篇里的横向比较：同一个模型、同一套游戏规则，看不同文本把概率表搅成什么形状。</p>
+
+<div class="metric-grid" aria-label="核心数字">
   <div class="metric"><strong>59,496</strong><span>11 类文本的预测步总数</span></div>
-  <div class="metric"><strong>3.53 → 4.48</strong><span>平均预测熵范围，单位 nats/step</span></div>
-  <div class="metric"><strong>95.0%</strong><span>《三国演义》的 Top-1000 匹配率</span></div>
-  <div class="metric"><strong>Rank 1–2</strong><span>“疯狂→星期四”的定点命中</span></div>
+  <div class="metric"><strong>3.53 → 4.48</strong><span>平均下一 token 熵，nats/step</span></div>
+  <div class="metric"><strong>95.0%</strong><span>《三国演义》的 top-1000 命中率</span></div>
+  <div class="metric"><strong>Rank 1–2</strong><span>“疯狂 → 星期四”的命中位置</span></div>
 </div>
 
-<h2>1 研究问题</h2>
+<h2>我故意把语料混得很杂</h2>
 
-<p>Shannon 的核心问题不是某个孤立符号有多难猜，而是上下文如何逐步降低下一个符号的不确定性。给定前 \(N\) 个符号，预测下一个符号的条件不确定性记为 \(H(N)\)；当 \(N\) 增大时，语言中的重复、搭配、句法和语义依赖会共同降低 \(H(N)\)。</p>
+<p>维基百科、新闻、古典小说、武侠、现代文学、方言小说、反转段子、疯狂星期四文案，全都扔给同一个小模型。语料越杂，模型越容易露出脾气。</p>
 
-<p>汉语为这一问题提供了一个有趣场景。字符候选空间很大，人类受试者很难像英语逐字母实验那样逐位置猜测。语言模型则可以在每个位置给出完整词表上的概率分布。本文并不声称模型就是人类读者，而是把它作为一个可重复、可记录概率分布的自动预测器，用来观察不同汉语语体的相对可预测性。</p>
-
-<h2>2 相关工作</h2>
-
-<p class="no-indent"><strong>表 1</strong>　汉语熵研究的参照结果</p>
 <table>
-  <tr><th>研究</th><th>方法</th><th>结果</th></tr>
-  <tr><td>孙帆、孙茂松 (1988)</td><td>《人民日报》语料库字频统计</td><td>\(H_0 = 9.62\) bits/char</td></tr>
-  <tr><td>孙帆、孙茂松 (1988)</td><td>低阶条件概率</td><td>\(H_1 \approx 7.15\), \(H_2 \approx 6.65\) bits/char</td></tr>
-  <tr><td>Chang &amp; Lin (1994)</td><td>同义词词林聚类</td><td>约 4.6 bits/char</td></tr>
-  <tr><td>Takahashi &amp; Tanaka-Ishii (2018)</td><td>神经语言模型交叉熵</td><td>4.43 bpc，外推约 3.96 bpc</td></tr>
+  <tr><th>最显眼的地方</th><th>文本</th><th>为什么有意思</th></tr>
+  <tr><td class="best">最顺的一路</td><td>维基百科、新闻</td><td>定义式句子、专名、时间地点关系、报道模板</td></tr>
+  <tr><td>奇怪的角落</td><td>《三国演义》</td><td>top-1000 命中率最高，但平均熵不是最低</td></tr>
+  <tr><td>干净的梗切面</td><td>疯狂星期四文案</td><td>固定短语容易；punchline 的框架更难</td></tr>
+  <tr><td class="worst">最颠簸的一路</td><td>《四世同堂》《俗世奇人》</td><td>方言、口语节奏、地方声音</td></tr>
 </table>
 
-<p>既有研究主要给出字符级频率或交叉熵估计。本文的贡献不同：它不直接给出汉语字符熵率的最终数值，而是复现 Shannon 式“逐位置预测”的实验形状，并把重点放在语体差异、命中排名和上下文长度带来的衰减趋势上。</p>
+<h2>维基百科是平路，方言小说是石子路</h2>
 
-<h2>3 方法</h2>
+<figure>
+  <img src="figs/fig_entropy.png" width="1839" height="939" loading="lazy" decoding="async" alt="平均下一 token 熵柱状图。维基百科最低，新闻次低，方言小说最高。">
+  <figcaption>图 1. 维基百科最省力；方言小说让模型把赌注摊开。</figcaption>
+</figure>
 
-<h3>3.1 Token-match 游戏</h3>
+<p>这个结果不意外。维基百科和新闻本来就是语言模型的柏油路：定义、专名、时间地点关系、话题标签、报道公式，全都很规整。方言小说像石子路，地方声音、口语节奏、拐来拐去的说法都会让下一步变得更滑。</p>
 
-<p>给定一段文本，从第 5 个字符之后开始预测。每一步把已知前缀输入模型，模型在完整词表上计算下一 token 的概率分布；实验只在概率最高的 \(K=1000\) 个 token 中寻找命中。若候选 token \(t_k\) 是原文剩余部分的前缀，则记录排名 \(k\)、概率和分布熵，并按该 token 覆盖的字符数前进；若 top-1000 内无命中，则记录 miss 并前进 1 个字符。</p>
+<p>“方言味儿”和“口语感”平时容易被说成玄学；在这里，它们直接表现为更散的下一 token 分布。</p>
 
-<p>这个设计把 Shannon 的逐字母猜测推广为逐 token 猜测。分词器词表来自大规模语料中的高频子串和共现模式，因此多字符 token 的命中本身反映了一部分汉语搭配结构。不过，token 级结果不能直接等同于字符级熵率；若要严格估计字符级 \(H(N)\)，还需要把所有以同一字符开头的 token 概率聚合为字符概率。</p>
+<h2>《三国演义》最会骗人</h2>
 
-<h3>3.2 模型与数据</h3>
+<figure>
+  <img src="figs/fig_scatter.png" width="1599" height="1118" loading="lazy" decoding="async" alt="平均熵与 top-1000 命中率散点图。《三国演义》的命中率异常高。">
+  <figcaption>图 2. 《三国演义》的位置很怪：真实答案常常能进 top-1000，但整体分布并没有特别尖。</figcaption>
+</figure>
 
-<p>模型为 <strong>Qwen3-0.6B Base</strong>，实验过程中不更新参数。数据涵盖百科、新闻、科普、网络梗、章回体、武侠、现代文学、方言文学和历史散文等 11 类文本。主实验上下文范围为 \(N=5 \to 50\)，扩展实验对四部长文本延伸至 \(N=200\)。</p>
+<p>《三国演义》的 top-1000 命中率最高：95.0%。但它没有拿到最低平均熵。这个组合很耐看。</p>
 
-<h2>4 主实验结果</h2>
+<p>原因大概在“附近”和“唯一”之间。套路能把正确续写送到附近：“却说”“话说”“玄德曰”、战阵描写、官职称谓、章回体机器，都会帮模型摸到街区；可街区里还有很多门，概率未必会像维基百科那样狠狠压到一个 token 上。</p>
 
-<p class="no-indent"><strong>表 2</strong>　11 类文本的 token-match 结果（\(N=5 \to 50\)，top-\(K=1000\)）</p>
+<p>模型找得到，不代表它心里只有一个答案。</p>
+
+<figure>
+  <img src="figs/fig_rank1.png" width="1568" height="1119" loading="lazy" decoding="async" alt="Rank-1 命中率图。维基百科和疯狂星期四最高，《四世同堂》最低。">
+  <figcaption>图 3. 模型第一猜就猜中的频率。</figcaption>
+</figure>
+
+<h2>疯狂星期四：会背口号，不一定懂转弯</h2>
+
+<p>中文互联网里这个动作太熟了：前面可以正常、煽情、狗血、悬疑，最后突然拐到“今天疯狂星期四，V我50”。我直接去戳这个暗门。</p>
+
 <table>
-  <tr><th>类别</th><th>来源</th><th>步数</th><th>匹配率</th><th>Rank-1</th><th>平均预测熵</th></tr>
-  <tr><td>wiki</td><td>维基百科</td><td>4,228</td><td>94.0%</td><td class="best">27.6%</td><td class="best">3.53</td></tr>
-  <tr><td>news</td><td>新闻</td><td>2,693</td><td>92.0%</td><td>24.6%</td><td>3.80</td></tr>
-  <tr><td>internet_twists</td><td>反转段子/废话文学</td><td>1,323</td><td>92.3%</td><td>25.6%</td><td>3.94</td></tr>
-  <tr><td>human_jianshi</td><td>《人类简史》</td><td>6,450</td><td>91.6%</td><td>24.7%</td><td>3.95</td></tr>
-  <tr><td>kfc</td><td>疯狂星期四</td><td>1,497</td><td>91.4%</td><td>27.5%</td><td>3.95</td></tr>
+  <tr><th>前缀</th><th>目标</th><th>排名</th></tr>
+  <tr><td>...因为疯狂</td><td class="hi">星期四</td><td class="best">1</td></tr>
+  <tr><td>...肯德基疯狂</td><td class="hi">星期四</td><td class="best">2</td></tr>
+  <tr><td>...今天是疯狂</td><td class="hi">星期四</td><td class="best">1</td></tr>
+  <tr><td>...能给我转50吃</td><td class="hi">肯德基</td><td>252</td></tr>
+  <tr><td>...V我50吃一顿</td><td class="hi">肯德基</td><td class="worst">not found</td></tr>
+  <tr><td>...缺五十块买</td><td class="hi">肯德基</td><td class="worst">not found</td></tr>
+</table>
+
+<p>模型把“疯狂星期四”吃成了一整块。但“吃 → 肯德基”要难得多。“吃”会打开整个食物宇宙；最后落到肯德基，要靠那套转账、星期四、KFC 的暗线，而不只是补全搭配。</p>
+
+<p>这个小测试把可预测性劈成两半：一边是背熟的短语，一边是闻出铺垫。模型会接上口号，但不总能闻到笑点。</p>
+
+<h2>上下文：前几十个字最值钱</h2>
+
+<p>Shannon 实验真正迷人的地方是上下文：前文多给一点，猜测会容易多少？我挑了四部长文本，把上下文窗口从 \(N=5\) 拉到约 \(N=200\)，再用一个简单衰减式拟合：</p>
+
+<p>\[H(N)=H_\infty+aN^{-b}.\]</p>
+
+<figure>
+  <img src="figs/fig_hn_decay.png" width="1749" height="1119" loading="lazy" decoding="async" alt="四部长文本的幂律式衰减曲线。上下文越长，熵越低，并逐渐接近每预测步约 3 nats。">
+  <figcaption>图 4. 上下文先迅速压低熵，随后曲线变平。这里画的是 token 级模型熵。</figcaption>
+</figure>
+
+<table>
+  <tr><th>文本</th><th>\(H_\infty\)</th><th>\(b\)</th><th>\(R^2\)</th><th>读法</th></tr>
+  <tr><td>《三国演义》</td><td>3.00</td><td>0.681</td><td>0.99</td><td>衰减平滑，章回体模板稳定</td></tr>
+  <tr><td>《白鹿原》</td><td>3.22</td><td>0.541</td><td>0.99</td><td>收敛更慢，文学变化更多</td></tr>
+  <tr><td>《人类简史》</td><td>3.21</td><td>1.035</td><td>0.93</td><td>短上下文带来的收益很大</td></tr>
+  <tr><td>《天龙八部》</td><td>3.05</td><td>0.955</td><td>0.93</td><td>长上下文后逐渐接近章回叙事</td></tr>
+</table>
+
+<p>我更在意曲线怎么弯，而不是参数小数点后几位。前几十个字最值钱，能迅速买到确定性；再继续加一百个字，当然还有用，但没有前面那么划算。曲线慢慢变平的样子，正好把“上下文的边际收益”画了出来。</p>
+
+<h2>口径：这里看的是 token 熵</h2>
+
+<p>这几个数字的口径要摆清楚：它们是模型侧的 token 熵，衡量 Qwen3-0.6B 在每一步对下一 token 的分布有多分散。</p>
+
+<ul>
+  <li>单位：nats per prediction step，不是 bits per character。</li>
+  <li>预测器：一个小模型，不是“中文真实分布”。</li>
+  <li>粒度：token-match，不是字符级猜测。</li>
+</ul>
+
+<p>要走字符级路线，就得把 token 概率折回下一个字符的概率：</p>
+
+<p>\[P(c\mid C)=\sum_{t:\operatorname{prefix}(t)=c} P(t\mid C).\]</p>
+
+<p>那条路更适合和旧的 bits-per-character 工作对齐。眼下这个 token 版本先做一件更朴素的事：把文本里那些不平整的地方照出来。</p>
+
+<h2>语言学藏在这些卡顿里</h2>
+
+<p>分数之外，更值得盯的是这些语言问题：</p>
+
+<ul>
+  <li>哪些中文让模型犹豫？</li>
+  <li>套路化写法是让模型更自信，还是只是把正确答案放到附近？</li>
+  <li>模型到底是认识短语，还是认出了梗？</li>
+  <li>上下文给到多长，收益才开始变薄？</li>
+</ul>
+
+<p>一个总熵数字会把这些差别压扁。可预测性有很多形状：一段文本可以很套路，让正确续写经常在附近，但分布仍然不够尖；另一段文本主题普通，却因为声音和句法更毛糙而让模型散开；一个梗可以在局部极其明显，在整体脚本上又突然打滑。</p>
+
+<p>不同中文文本有不同的“可猜”方式。小模型不一定聪明，但它很诚实：哪里顺，哪里卡，它都会在概率表上露出来。</p>
+
+<h2>完整数字</h2>
+
+<table>
+  <tr><th>类别</th><th>来源</th><th>预测步</th><th>命中率</th><th>Rank-1</th><th>Mean H</th></tr>
+  <tr><td>wiki</td><td>维基百科样本</td><td>4,228</td><td>94.0%</td><td class="best">27.6%</td><td class="best">3.53</td></tr>
+  <tr><td>news</td><td>新闻文章</td><td>2,693</td><td>92.0%</td><td>24.6%</td><td>3.80</td></tr>
+  <tr><td>internet_twists</td><td>反转段子 / 废话文学</td><td>1,323</td><td>92.3%</td><td>25.6%</td><td>3.94</td></tr>
+  <tr><td>human_jianshi</td><td>《人类简史》中文版</td><td>6,450</td><td>91.6%</td><td>24.7%</td><td>3.95</td></tr>
+  <tr><td>kfc</td><td>疯狂星期四文案</td><td>1,497</td><td>91.4%</td><td>27.5%</td><td>3.95</td></tr>
   <tr><td>sanguo</td><td>《三国演义》</td><td>7,818</td><td class="best">95.0%</td><td>25.7%</td><td>4.00</td></tr>
   <tr><td>wanli</td><td>《万历十五年》</td><td>7,590</td><td>91.3%</td><td>23.4%</td><td>4.07</td></tr>
   <tr><td>tianlongbabu</td><td>《天龙八部》</td><td>7,425</td><td>92.0%</td><td>24.2%</td><td>4.09</td></tr>
@@ -207,96 +434,11 @@ footer {
   <tr><td>sushi_qiren</td><td>《俗世奇人》</td><td>6,885</td><td>90.0%</td><td>19.6%</td><td class="worst">4.48</td></tr>
 </table>
 
-<figure>
-  <img src="figs/fig_entropy.png" width="1839" height="939" loading="lazy" decoding="async" alt="平均预测熵排序图显示维基百科最低，新闻次之，四世同堂和俗世奇人最高。">
-  <figcaption>图 1　11 类文本的平均预测熵，单位为 nats/预测步；数值越低，表示模型下一步分布越集中、文本越可预测。</figcaption>
-</figure>
-
-<p>结果的主线很清楚：百科和新闻的平均预测熵最低，方言文学最高。正式文本术语密度高、搭配固定，模型更容易把概率集中到少数候选；文学文本尤其是带方言色彩的小说，口语化表达、叙述节奏和局部创新更多，预测分布更分散。</p>
-
-<p>《三国演义》是最有趣的例外。它的平均预测熵为 4.00，并非最低，但 Top-1000 匹配率达到 95.0%，为所有类别最高。这说明章回体的固定套话和叙事模板能让正确 token 经常进入候选集，却不一定让整个概率分布像百科文本那样高度尖锐。</p>
-
-<figure>
-  <img src="figs/fig_scatter.png" width="1599" height="1118" loading="lazy" decoding="async" alt="散点图显示平均预测熵越高，Top-1000 匹配率整体越低，三国演义是高匹配率例外。">
-  <figcaption>图 2　平均预测熵与 Top-1000 匹配率。气泡面积表示 Rank-1 命中率；坐标轴为了展示 90% 附近的差异而截取局部范围。</figcaption>
-</figure>
-
-<figure>
-  <img src="figs/fig_rank1.png" width="1568" height="1119" loading="lazy" decoding="async" alt="Rank-1 命中率排序图显示维基百科和疯狂星期四最高，四世同堂最低。">
-  <figcaption>图 3　Rank-1 命中率。分母为全部预测步，top-1000 未命中的位置计为非 Rank-1。</figcaption>
-</figure>
-
-<h2>5 网络梗与反转点</h2>
-
-<p>“疯狂星期四”文案提供了一个直观的定点测试：固定搭配和梗语境是否同样容易被预测？结果显示二者差异明显。</p>
-
-<p class="no-indent"><strong>表 3</strong>　KFC 文案反转点预测</p>
-<table>
-  <tr><th>前缀</th><th>目标词</th><th>排名</th></tr>
-  <tr><td>...因为疯狂</td><td class="highlight">星期四</td><td class="best">1</td></tr>
-  <tr><td>...肯德基疯狂</td><td class="highlight">星期四</td><td class="best">2</td></tr>
-  <tr><td>...今天是疯狂</td><td class="highlight">星期四</td><td class="best">1</td></tr>
-  <tr><td>...能给我转50吃</td><td class="highlight">肯德基</td><td>252</td></tr>
-  <tr><td>...V我50吃一顿</td><td class="highlight">肯德基</td><td class="worst">NOT FOUND</td></tr>
-  <tr><td>...缺五十块买</td><td class="highlight">肯德基</td><td class="worst">NOT FOUND</td></tr>
-</table>
-
-<p>“疯狂→星期四”已经是高度固化的语言搭配，模型在 Rank 1–2 即可命中；“吃→肯德基”则仍是开放名词选择，必须依赖更强的语境、梗知识和篇章期待。这个对比说明，模型的 token 预测首先反映局部统计结构；语用反转和文化梗可以被学习，但比固定搭配更不稳定。</p>
-
-<h2>6 上下文长度实验</h2>
-
-<p>为了观察 Shannon 式条件熵链，对《三国演义》《白鹿原》《人类简史》《天龙八部》四部长文本进行扩展实验，把上下文长度延伸到 \(N=200\)，并按对数间距分箱后拟合：</p>
-
-<p class="no-indent">\[H(N)=H_\infty+aN^{-b}\]</p>
-
-<figure>
-  <img src="figs/fig_hn_decay.png" width="1749" height="1119" loading="lazy" decoding="async" alt="条件熵随上下文长度增加而下降，四部文本拟合到约 3 nats 每预测步。">
-  <figcaption>图 4　四部长文本的 \(H(N)\) 衰减曲线。散点表示分箱均值，曲线为幂律拟合；该图聚焦 token 级模型预测熵，不与字符级 \(H_0\) 放在同一坐标轴比较。</figcaption>
-</figure>
-
-<p class="no-indent"><strong>表 4</strong>　幂律拟合结果，单位为 nats/预测步</p>
-<table>
-  <tr><th>文本</th><th>\(H_\infty\)</th><th>\(b\)</th><th>\(R^2\)</th><th>解释</th></tr>
-  <tr><td>三国演义</td><td>3.00</td><td>0.681</td><td>0.99</td><td>衰减平滑，章回体模板稳定</td></tr>
-  <tr><td>白鹿原</td><td>3.22</td><td>0.541</td><td>0.99</td><td>收敛较慢，文学表达更分散</td></tr>
-  <tr><td>人类简史</td><td>3.21</td><td>1.035</td><td>0.93</td><td>短上下文收益较大</td></tr>
-  <tr><td>天龙八部</td><td>3.05</td><td>0.955</td><td>0.93</td><td>长上下文后接近章回体</td></tr>
-</table>
-
-<p>四条曲线共同支持一个稳健结论：上下文越长，模型预测不确定性越低，但下降速度逐渐变慢。前 10 到 30 个字符通常贡献最大；继续增加上下文仍有帮助，但边际收益明显下降。这是本文最接近 Shannon 原实验精神的结果。</p>
-
-<h2>7 讨论</h2>
-
-<p>本实验的价值不在于直接宣布“汉语熵率是多少”，而在于建立一个可重复的预测框架，并得到一组有解释力的相对结果。维基百科、新闻、科普等说明性文本更可预测，方言文学和现代小说更不可预测；网络梗中固定搭配可被准确命中，反转处则更依赖文化语境；上下文长度带来的收益呈递减趋势。</p>
-
-<p>需要区分两个相关但不同的指标。模型分布熵 \(-\sum_{t} q(t)\log q(t)\) 衡量模型自身对下一 token 的不确定性；真实目标 token 的 \(-\log q(t^*)\) 才是 surprisal。本文主要分析前者，因此只能谨慎地讨论“模型预测不确定性”。若要把结果与阅读时间或眼动数据相连，需要记录真实目标的 surprisal，并与人类行为数据做对应。</p>
-
-<p>同样，本文不把 \(H_\infty\) 与字符级 \(H_0\) 相除来给出精确冗余度。严格的汉语冗余度需要在同一粒度和同一单位下比较：例如把 token 概率聚合到下一个字符，使用 bits/char 计算 \(H(N)\)，再与字符级 \(H_0\) 比较。当前结果更适合作为 token 级模型指标，展示方向和结构，而不是作为最终字符熵率。</p>
-
-<h2>8 局限与展望</h2>
-
-<p>本实验有四个主要局限。第一，只使用单一小模型 Qwen3-0.6B，模型规模和训练语料会影响概率分布。第二，top-1000 token-match 会低估长尾命中，miss 的位置也不能仅凭命中记录还原原文。第三，当前单位为 nats/预测步，不能直接和 bits/char 文献数值合并。第四，语体覆盖仍有限，口语转写、诗歌、法律文书和社交媒体短文本都值得补充。</p>
-
-<p>后续最直接的改进是实现字符级概率聚合：\(P(c\mid C)=\sum_{t:\operatorname{prefix}(t)=c}P(t\mid C)\)。这样可以得到真正的字符级条件熵链，并与 \(H_0=9.62\) bits/char 在同一口径下比较。另一个方向是测试 0.6B、7B、72B 等不同规模模型，观察语体排序是否保持稳定。</p>
-
-<h2>9 结论</h2>
-
-<p>本文用语言模型复现了一个适合汉语的 Shannon 式预测实验。结论可以概括为三点：第一，不同汉语语体在模型预测不确定性上存在系统差异，百科和新闻更可预测，方言文学更不可预测；第二，固定搭配和网络梗反转的预测难度不同，“疯狂→星期四”远比“吃→肯德基”稳定；第三，随着上下文长度增加，\(H(N)\) 近似幂律衰减，说明上下文信息的边际收益递减。最稳妥的贡献不是给出汉语熵率的最终数字，而是提供一个可复现的实验框架和一组可解释的相对发现。</p>
-
-<h2>参考文献</h2>
-
-<p class="no-indent" style="font-size:0.9em; line-height:1.7;">
-Shannon, C. E. (1948). A Mathematical Theory of Communication. <em>Bell System Technical Journal</em>, 27(3), 379–423.<br>
-Shannon, C. E. (1951). Prediction and Entropy of Printed English. <em>Bell System Technical Journal</em>, 30(1), 50–64.<br>
-孙帆, 孙茂松 (1988). 汉字信息熵的计算与分析. <em>语言学论丛</em>.<br>
-Chang, C.-H., &amp; Lin, C.-C. (1994). A Study on the Entropy of Chinese Characters. <em>Proceedings of ROCLING</em>.<br>
-Takahashi, S., &amp; Tanaka-Ishii, K. (2018). Evaluating Computational Language Models with Scaling Properties of Natural Language. <em>Entropy</em>, 20(11), 839.<br>
-Hale, J. (2001). A Probabilistic Earley Parser as a Psycholinguistic Model. <em>Proceedings of NAACL</em>, 159–166.<br>
-Levy, R. (2008). Expectation-based Syntactic Comprehension. <em>Cognition</em>, 106(3), 1126–1177.
-</p>
+<p class="small">Mean H 是下一 token 分布熵，单位为 nats/step。数值越低，说明模型的分布越集中。</p>
 
 <footer>
-  汉语文本的可预测性 · Shannon 式 token-match 实验 · 2026年5月
+  Shannon-style Chinese prediction · 中文版 post · 2026<br>
+  源码与页面：<a href="https://github.com/Chi-Shan0707/Shannon-Chinese-Prediction/">github.com/Chi-Shan0707/Shannon-Chinese-Prediction/</a>
 </footer>
 
 </main>

@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>I Tried Shannon’s Guessing Game on Chinese Texts</title>
+<link rel="alternate" hreflang="zh-CN" href="report.html">
 <script>
 window.MathJax = {
   tex: {
@@ -36,6 +37,35 @@ body {
   font-size: 17px;
 }
 .container { max-width: 900px; margin: 0 auto; padding: 48px 22px 72px; }
+.language-switch {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 22px;
+  font-size: 0.82em;
+  line-height: 1;
+  flex-wrap: wrap;
+}
+.language-switch span,
+.language-switch a {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 11px;
+}
+.language-switch span {
+  color: var(--faint);
+  background: rgba(255,255,255,0.28);
+}
+.language-switch a {
+  color: var(--accent);
+  background: rgba(255,255,255,0.58);
+  text-decoration: none;
+}
+.language-switch a:hover {
+  border-color: var(--accent);
+  background: #fff;
+}
 .eyebrow {
   text-align: center;
   color: var(--accent);
@@ -62,6 +92,13 @@ h1 {
   line-height: 1.6;
 }
 .meta { text-align: center; color: var(--faint); font-size: 0.86em; margin-bottom: 30px; }
+.repo-line {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.86em;
+  margin: -18px auto 30px;
+}
+.repo-line a { color: var(--accent); }
 h2 {
   font-size: 1.3em;
   line-height: 1.35;
@@ -190,6 +227,7 @@ footer {
 @media (max-width: 760px) {
   body { font-size: 16px; }
   .container { padding: 34px 15px 54px; }
+  .language-switch { justify-content: center; margin-bottom: 20px; }
   h1 { font-size: 1.58em; }
   .metric-grid { grid-template-columns: repeat(2, 1fr); }
   .thread { grid-template-columns: 1fr; }
@@ -201,10 +239,17 @@ footer {
 <body>
 <main class="container">
 
+<nav class="language-switch" aria-label="Language switch and project link">
+  <span>English</span>
+  <a href="report.html" hreflang="zh-CN" lang="zh-CN">中文</a>
+  <a href="https://github.com/Chi-Shan0707/Shannon-Chinese-Prediction/">GitHub</a>
+</nav>
+
 <div class="eyebrow">A tiny Shannon experiment on Chinese</div>
 <h1>I Tried Shannon’s Guessing Game on Chinese Texts</h1>
 <p class="dek">Wikipedia, dialect fiction, wuxia, and KFC Thursday memes through the same tiny next-token predictor.</p>
 <div class="meta">Qwen3-0.6B Base · 11 Chinese text categories · 59,496 prediction steps</div>
+<p class="repo-line">Project repo: <a href="https://github.com/Chi-Shan0707/Shannon-Chinese-Prediction/">github.com/Chi-Shan0707/Shannon-Chinese-Prediction/</a></p>
 
 <section class="lead">
   <p>When the model saw “因为疯狂”, it wanted to say “星期四” immediately. Rank 1. When it saw “肯德基疯狂”, same story: “星期四” was still right there. But when the setup became “V我50吃一顿...”, the word “肯德基” disappeared from the top guesses.</p>
@@ -393,7 +438,7 @@ footer {
 
 <footer>
   Shannon-style Chinese prediction · Personal research note · 2026<br>
-  Source and code: <a href="https://github.com/Chi-Shan0707/Shannon-Chinese-Prediction">github.com/Chi-Shan0707/Shannon-Chinese-Prediction</a>
+  Source and code: <a href="https://github.com/Chi-Shan0707/Shannon-Chinese-Prediction/">github.com/Chi-Shan0707/Shannon-Chinese-Prediction/</a>
 </footer>
 
 </main>
