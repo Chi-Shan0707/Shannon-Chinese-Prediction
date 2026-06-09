@@ -81,14 +81,35 @@ a { color: #7b5600; text-decoration-thickness: 1px; text-underline-offset: 3px; 
   padding: 18px 20px;
   margin: 24px 0 28px;
 }
-.note, .contribution {
+.note, .contribution, .scene {
   background: rgba(255,255,255,0.42);
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 16px 18px;
   margin: 20px 0 26px;
 }
-.note strong, .contribution strong { color: #444; }
+.note strong, .contribution strong, .scene strong { color: #444; }
+.claim {
+  font-size: 1.17em;
+  line-height: 1.62;
+  color: #303030;
+  border-left: 3px solid var(--accent);
+  padding: 4px 0 4px 16px;
+  margin: 24px 0;
+}
+.thread {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 20px 0 28px;
+}
+.thread div {
+  background: rgba(255,255,255,0.38);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 15px;
+}
+.thread strong { display: block; margin-bottom: 5px; color: #444; }
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -171,6 +192,7 @@ footer {
   .container { padding: 34px 15px 54px; }
   h1 { font-size: 1.58em; }
   .metric-grid { grid-template-columns: repeat(2, 1fr); }
+  .thread { grid-template-columns: 1fr; }
   table { font-size: 0.80em; }
   th, td { padding: 6px 7px; }
 }
@@ -181,12 +203,12 @@ footer {
 
 <div class="eyebrow">Language, Entropy, and Chinese Texts</div>
 <h1>How Predictable Is Chinese? Replaying Shannon with a Small Language Model</h1>
-<p class="dek">A personal experiment on Chinese text predictability, internet memes, genre differences, and what happens when context gets longer.</p>
+<p class="dek">A small experiment about Chinese text predictability, internet memes, old novels, dialect fiction, and how much context a language model really needs.</p>
 <div class="meta">Qwen3-0.6B Base · 11 Chinese text categories · 59,496 prediction steps</div>
 
 <section class="lead">
-  <p>Claude Shannon once estimated the entropy of printed English by asking humans to guess the next letter of a text. That setup is charmingly simple for English letters. It becomes awkward for Chinese: the candidate set is not 26 letters, but thousands of characters, plus word-like units and idiomatic chunks. So I tried a modern substitute: let a small language model play the guessing game, record what it predicts, and ask which kinds of Chinese text are easier or harder to predict.</p>
-  <p>The strongest contribution here is not “I measured the final entropy rate of Chinese.” I did not. The stronger and more honest contribution is a reusable observation framework: a Shannon-style token-match game that makes genre differences, formulaic writing, internet meme structure, and context-length effects visible in one experiment.</p>
+  <p>Claude Shannon had a wonderfully physical way of thinking about language. To estimate the entropy of printed English, he asked people to guess what letter came next. A human sits there, makes guesses, and the text slowly reveals how much structure it has.</p>
+  <p>I wanted to ask the same kind of question for Chinese, but the original setup breaks almost immediately. English has 26 letters. Chinese has thousands of common characters, multi-character words, idioms, names, internet phrases, and all the half-word chunks that modern tokenizers love. So instead of asking a person to guess the next symbol, I asked a small local language model to play the game.</p>
 </section>
 
 <div class="metric-grid" aria-label="Key numbers">
@@ -196,20 +218,34 @@ footer {
   <div class="metric"><strong>Rank 1–2</strong><span>model hits for “疯狂 → 星期四”</span></div>
 </div>
 
-<h2>What I Think the Actual Contributions Are</h2>
+<h2>The Small Idea</h2>
 
-<div class="contribution">
-  <ol>
-    <li><strong>A Chinese-friendly version of Shannon’s guessing game.</strong> Instead of asking a human to choose from thousands of Chinese characters, the experiment uses a language model as an automatic predictor and searches its top-1000 next-token candidates for the true continuation.</li>
-    <li><strong>A genre map of Chinese predictability.</strong> Encyclopedic and news-style texts are easier for the model; dialect-rich fiction and highly literary prose are harder. This is intuitive, but the experiment makes it quantitative.</li>
-    <li><strong>A useful anomaly: formulaic style is not the same as low entropy.</strong> <em>Romance of the Three Kingdoms</em> has the best top-1000 match rate, but it is not the lowest-entropy text. Formulaic language can help the correct token enter the candidate set without making the whole distribution extremely sharp.</li>
-    <li><strong>A small probe into meme predictability.</strong> The model nails fixed collocations such as “疯狂 → 星期四”, but punchline-like continuations such as “吃 → 肯德基” are much less stable. That difference is a nice way to separate local statistical collocation from cultural or pragmatic expectation.</li>
-    <li><strong>A context-length curve.</strong> When context grows from a few characters to about 200 characters, uncertainty falls, but with diminishing returns. This is the most Shannon-like part of the project.</li>
-    <li><strong>A useful negative result about measurement.</strong> The numbers here are model next-token entropy in nats/step. They should not be over-sold as character-level bits/char entropy rates. Making that distinction explicit is part of the value of the experiment.</li>
-  </ol>
+<p class="claim">The interesting part is not a single entropy number. It is that a language model can be used as a little microscope for Chinese textual regularity.</p>
+
+<p>The model is not a human reader, and I do not pretend that it gives the true entropy rate of Chinese. But it does something useful: at every position in a text, it shows how concentrated or scattered its expectations are. If the next phrase is obvious, probability collapses onto a few candidates. If the writing is dialectal, literary, strange, or punchline-shaped, the distribution spreads out.</p>
+
+<p>That gives the experiment a different flavor from a standard benchmark. I am less interested in whether the model is “good” in the usual leaderboard sense, and more interested in what kind of Chinese makes it hesitate.</p>
+
+<div class="thread">
+  <div>
+    <strong>Genre becomes visible.</strong>
+    Wikipedia and news look smooth and predictable. Dialect fiction does not. That sounds obvious, but it is satisfying to watch the difference appear as a curve rather than as a vague literary impression.
+  </div>
+  <div>
+    <strong>Formulaic writing behaves strangely.</strong>
+    <em>Romance of the Three Kingdoms</em> is easy to hit in the top-1000 candidates, but not the lowest-entropy text. A formula can make the right answer available without making the model completely certain.
+  </div>
+  <div>
+    <strong>Memes split in two.</strong>
+    “疯狂 → 星期四” is nearly automatic. “吃 → 肯德基” is not. The first is a fixed collocation; the second asks the model to recognize the social script of the meme.
+  </div>
+  <div>
+    <strong>Context has a curve.</strong>
+    More context helps, but the first few dozen characters do most of the work. After that, the returns flatten. That is the part that feels closest to Shannon.
+  </div>
 </div>
 
-<p>If I were turning this into a paper, I would need a more careful character-level probability aggregation method. For a personal website post, though, this version is already interesting: it shows how far a small local language model can go as a microscope for Chinese textual regularity.</p>
+<p>So if this post has a contribution, it is this: it turns “Chinese texts feel different” into a set of small, inspectable prediction behaviors. Not final theory. Not a grand claim. Just a useful instrument.</p>
 
 <h2>The Game: Token-Match Prediction</h2>
 
@@ -310,9 +346,9 @@ footer {
 
 <p>I would not over-interpret the exact fitted parameters. The qualitative result is the point: context helps a lot early, then helps less and less. The first few dozen characters do much more work than the next hundred. That is exactly the kind of shape Shannon cared about.</p>
 
-<h2>What This Is Not</h2>
+<h2>The Necessary Caveat</h2>
 
-<p>This is not a final measurement of Chinese entropy. There are three reasons.</p>
+<p>There is one place where I want to be careful. It is tempting to look at the numbers and say: “Here is the entropy of Chinese.” That would be too strong.</p>
 
 <ul>
   <li>The unit is nats/step, not bits/character.</li>
@@ -324,11 +360,11 @@ footer {
 
 <p>\[P(c\mid C)=\sum_{t:\operatorname{prefix}(t)=c} P(t\mid C).\]</p>
 
-<p>That would give a proper character-level conditional entropy chain and make comparison with older bits/character estimates much cleaner. I see this post as the first pass: a way to find the interesting structure before building the stricter estimator.</p>
+<p>That would give a proper character-level conditional entropy chain and make comparison with older bits/character estimates much cleaner. I see this post as the exploratory pass: a way to find where the interesting structure is before building the stricter estimator.</p>
 
-<h2>Why I Still Think This Is Worth Posting</h2>
+<h2>Why I Like This Experiment</h2>
 
-<p>The experiment turned out to be interesting because it is not only about a number. It gives a way to ask small, interpretable questions about Chinese:</p>
+<p>The experiment turned out to be more fun than I expected because it kept producing questions that felt linguistic rather than merely technical:</p>
 
 <ul>
   <li>Which genres make a language model uncertain?</li>
@@ -337,15 +373,15 @@ footer {
   <li>How much context is enough before the returns flatten?</li>
 </ul>
 
-<p>Those questions are more alive than a single entropy estimate. They also fit a personal website better: this is a computational note about language texture, not a claim to have solved Chinese information theory.</p>
+<p>Those questions are more alive than a single entropy estimate. They are also the reason this belongs on a personal website: it is a computational note about texture, not a claim that Chinese information theory has been solved.</p>
 
 <h2>Takeaway</h2>
 
-<p>If I had to state the contribution in one sentence, it would be this:</p>
+<p>If I had to keep only one sentence, it would be this:</p>
 
 <p class="lead">I built a Shannon-style prediction game that makes Chinese genre, formulaicity, meme structure, and context-length effects visible through a small language model’s next-token uncertainty.</p>
 
-<p>That contribution is modest, but real. It is also extensible. The next version should add character-level probability aggregation, confidence intervals, more models, and a broader set of spoken and web-native texts. But even in this rougher form, the experiment already shows something I find beautiful: Chinese texts carry very different amounts of predictability, and a tiny local model can help us see where that predictability lives.</p>
+<p>The next version should add character-level probability aggregation, confidence intervals, more models, and a broader set of spoken and web-native texts. But even in this rougher form, the experiment already shows the thing I wanted to see: Chinese texts carry very different kinds of predictability, and a tiny local model can help locate where that predictability lives.</p>
 
 <footer>
   Shannon-style Chinese prediction · Personal research note · 2026
